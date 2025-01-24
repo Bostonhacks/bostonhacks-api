@@ -28,8 +28,13 @@ app.use("/test", TestRoutes);
 
 app.use("/test", TestRoutes);
 
+app.use()
+
 const startServer = async () => {
   try {
+    if (!process.env.PORT || !process.env.NODE_ENV || !process.env.DATABASE_URL) {
+      throw new Error('Environment file not fully configured');
+    }
     const server = app.listen(process.env.PORT, () => {
       console.log(`Server is running on port ${process.env.PORT} with ${process.env.NODE_ENV} environment`);
     });
