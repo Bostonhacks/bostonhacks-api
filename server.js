@@ -2,39 +2,44 @@ import express from "express";
 import TestRoutes from "./app/routes/Test.routes.js";
 import path from "path";
 import dotenv from "dotenv";
+import cors from "cors";
 
 // database connection
 import prisma from "./app/database/Prisma.js";
 
+// routers
+import UserRoutes from "./app/routes/User.routes.js";
+
 // set correct config file
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'development';
+}
 dotenv.config({ path: path.join(path.resolve(), `.env.${process.env.NODE_ENV}`)}); 
 
 // express app
 const app = express();
 
+// middlewares
 app.use(express.json());
+app.use(cors());
 
 /* Routes */
 app.use("/test", TestRoutes);
+app.use("/api/user", UserRoutes);
+
+// expose public folder
+app.use(express.static(path.join(path.resolve(), 'public')));
 
 
-// app.listen(process.env.PORT, () => {
-//   console.log(`Server is running on port ${process.env.PORT}`);
-// }).catch(async(e) => {
-
-// }).finally(async() => {
-//   await prisma.$disconnect();
-// });
-
-app.use("/test", TestRoutes);
-
-app.use()
 
 const startServer = async () => {
   try {
+    // check if environment file is fully configured
     if (!process.env.PORT || !process.env.NODE_ENV || !process.env.DATABASE_URL) {
       throw new Error('Environment file not fully configured');
     }
+
+    // start server
     const server = app.listen(process.env.PORT, () => {
       console.log(`Server is running on port ${process.env.PORT} with ${process.env.NODE_ENV} environment`);
     });

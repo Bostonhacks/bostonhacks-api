@@ -16,7 +16,7 @@ FROM node:${NODE_VERSION}-alpine
 
 WORKDIR /usr/src/app
 
-
+ENV NODE_ENV=production
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.npm to speed up subsequent builds.
@@ -27,17 +27,22 @@ COPY ./prisma prisma
 
 RUN npm ci --omit=dev
 
+
 RUN chown -R node:node /usr/src/app/node_modules/.prisma
 
-# Run the application as a non-root user.
-USER node
 
 # Copy the rest of the source files into the image.
 COPY . .
 
+RUN chown -R node:node /usr/src/app/prisma
+
+# Run the application as a non-root user.
+USER node
+
 # Expose the port that the application listens on.
 EXPOSE 8000
 
+# RUN npm run migrate:dev
 
 # Run the application.
 CMD ["node", "server.js"]

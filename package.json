@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@prisma/client": "^6.2.1",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "dotenv-cli": "^8.0.0",
     "express": "^4.21.2",
@@ -10,16 +11,15 @@
   "scripts": {
     "dev": "dotenv -e .env.development -- nodemon server.js",
     "prod": "dotenv -e .env.production -- node server.js",
-    "migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
-    "migrate:prod": "dotenv -e .env.production -- npx prisma migrate dev",
+    "migrate:dev": "dotenv -e .env.development -- npx prisma db push",
+    "migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
     "build:dev": "npm run migrate:dev && npx prisma generate",
     "build:prod": "npm run migrate:prod && npx prisma generate",
     "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
-    "docker:prod": "docker-compose up"
-
+    "exitdocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down"
   },
   "devDependencies": {
+    "nodemon": "^3.1.9",
     "prisma": "^6.2.1"
   }
-
 }
