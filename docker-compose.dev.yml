@@ -1,5 +1,7 @@
 services:
   server:
+    build:
+      context: .
     env_file:
       # not real production file, just local production for testing
       - .env.production
