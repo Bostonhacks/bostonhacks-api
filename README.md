@@ -4,8 +4,14 @@ API used for various applications such as judging, yearly website, etc.
 # Notes
 Follow this file structure [here](https://dev.to/mr_ali3n/folder-structure-for-nodejs-expressjs-project-435l)
 
+Every time you update `prisma/schema.prisma` you must update the Prisma migrations: `npm run build:dev`
+
+Please do not add any sensitive keys/info to the public repository. All private keys/values should be placed in an `.env.*` or added to `.gitignore`.
+
 
 # To Run
+You must have NodeJS and Docker Desktop installed.
+
 `npm i` to install all packages
 
 There are two ways to run this API
@@ -16,13 +22,18 @@ There are two ways to run this API
       1. Essentially just run `npm run build:dev`
    4. `npm run dev` to run locally
       - Must have `.env.development` file 
-   5. Run `npm run exitsql:dev` to exit Docker container
+   5. Run `npm run exitsql:dev` to exit Docker SQL container
+      1. Optionally run `npm run cleansql:dev` to exit the SQL container and delete persistent storage.
 
 2. With a Docker container. This should be used to test your changes to see if they work before you push code.
    1. All code must work in the Docker container since our work deploys with Docker containers.
-   2. Refer to "Docker" section to understand more
-   3. Create a `.env.production` file as specified in `.env.example`. This does and should not have production level configurations, it is just a local file for Docker to use.
-   4. Run `npm run exitdocker:dev` to close Docker containers
+   2. Create a `.env.production` file as specified in `.env.example`. This does and should not have production level configurations, it is just a local file for Docker to use.
+   3. If you changed schemas, run `npm run build:dev` to create a migration. If you don't do this, then your changes will not be reflected in the test environment.
+   4. Run `npm run docker:dev` to start the docker container
+      1. `npm run exitdocker:dev` to exit containers
+      2. `npm run cleandocker:dev` to exit containers and remove created volumes
+      3. Refer to "Docker" section to understand more
+   5. Run `npm run exitdocker:dev` to close Docker containers
 
 Before you push any changes, please make sure to check if your changes work by running them in the Docker containers in (2). Then add your changes to a branch, push to the GitHub repo and create a pull request. You might have to run `npm run build:dev` if you updated `/prisma/schema.prisma`
 **Do not push directly into main**
