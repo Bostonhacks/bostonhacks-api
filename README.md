@@ -24,11 +24,13 @@ There are two ways to run this API
    3. Create a `.env.production` file as specified in `.env.example`. This does and should not have production level configurations, it is just a local file for Docker to use.
    4. Run `npm run exitdocker:dev` to close Docker containers
 
+Before you push any changes, please make sure to check if your changes work by running them in the Docker containers in (2). Then add your changes to a branch, push to the GitHub repo and create a pull request. You might have to run `npm run build:dev` if you updated `/prisma/schema.prisma`
+**Do not push directly into main**
 
 You can look at `./package.json` to view the npm scripts used in these steps.
 
 ## Prisma Migrations
-You must migrate Prisma schemas before working. This command should also be run if you change the Prisma schema. If there is a warning about data loss, revert and attempt to change schema to not prompt the issue (i.e. add default value for new field or make it optional) 
+You must migrate Prisma schemas before working and after every time you update `/prisma/schema.prisma`. This command should also be run if you change the Prisma schema. If there is a warning about data loss, revert and attempt to change schema to not prompt the issue (i.e. add default value for new field or make it optional) 
 
 `npm run build:dev`
 
@@ -37,6 +39,12 @@ This runs `prisma migrate dev` and `prisma generate` to update your local databa
 If you are having issues, then try generating the prisma client if you are getting issues with an ungenerated client. This should be automatically run during the npm install phase, otherwise:
 
 `npx prisma generate`
+
+### How Prisma works (if you want to know)
+Prisma is an ORM for many different databases, one of which is PostgreSQL. We define our schemas in `/prisma/schema.prisma` and then create a migration and a Prisma client with the defined schemas.
+
+You can refer to [here](https://www.prisma.io/docs/orm/prisma-migrate/workflows/development-and-production) for more info on migrations.
+- Essentially must have a migration history using `prisma migrate dev` and in production environments deploy migrations with `prisma migrate deploy`
 
 ## Docker
 
