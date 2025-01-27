@@ -11,12 +11,20 @@
   "scripts": {
     "dev": "dotenv -e .env.development -- nodemon server.js",
     "prod": "dotenv -e .env.production -- node server.js",
-    "migrate:dev": "dotenv -e .env.development -- npx prisma db push",
+
+    "migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
     "migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
+
     "build:dev": "npm run migrate:dev && npx prisma generate",
     "build:prod": "npm run migrate:prod && npx prisma generate",
+
     "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
-    "exitdocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down"
+    "exitdocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down",
+    "cleandocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v",
+
+    "sql:dev": "docker compose -f docker-compose.sql-dev.yml up --build",
+    "exitsql:dev": "docker compose -f docker-compose.sql-dev.yml down",
+    "cleansql:dev": "docker compose -f docker-compose.sql-dev.yml down -v"
   },
   "devDependencies": {
     "nodemon": "^3.1.9",

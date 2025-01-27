@@ -21,6 +21,16 @@ model User {
     lastName    String
     role        Role     @default(USER)
     profile     Profile?
+    applications Application[]
+}
+
+model Application {
+    id          Int      @id @default(autoincrement())
+    name        String
+    description String
+    user        User     @relation(fields: [userId], references: [id])
+    userId      Int
+    city        String
 }
 
 

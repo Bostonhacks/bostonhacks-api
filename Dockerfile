@@ -25,7 +25,8 @@ ENV NODE_ENV=production
 COPY package*.json ./
 COPY ./prisma prisma
 
-RUN npm ci --omit=dev
+# RUN npm ci --omit=dev
+RUN npm ci
 
 
 RUN chown -R node:node /usr/src/app/node_modules/.prisma

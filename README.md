@@ -9,27 +9,34 @@ Follow this file structure [here](https://dev.to/mr_ali3n/folder-structure-for-n
 `npm i` to install all packages
 
 There are two ways to run this API
-1. Locally on your computer using any PostgreSQL database you want.
-   1. If you do this, you must add the DATABASE_URL to a `.env.development` file
-   2. Look at "Prisma Migrations" section to sync the schemas with your own Postgres database
-   3. `npm run dev` to run locally
-      - Must have `.env.development` file
-2. With a Docker container.
+1. Locally on your computer using any PostgreSQL database you want. This should be used for active development
+   1. If you do this, look at `.env.example` to create your own `.env.development` file
+   2. Run `npm run sql:dev` to start a local db with Docker
+   3. Look at "Prisma Migrations" section to sync the schemas with your own Postgres database
+      1. Essentially just run `npm run build:dev`
+   4. `npm run dev` to run locally
+      - Must have `.env.development` file 
+   5. Run `npm run exitsql:dev` to exit Docker container
+
+2. With a Docker container. This should be used to test your changes to see if they work before you push code.
    1. All code must work in the Docker container since our work deploys with Docker containers.
    2. Refer to "Docker" section to understand more
+   3. Create a `.env.production` file as specified in `.env.example`. This does and should not have production level configurations, it is just a local file for Docker to use.
+   4. Run `npm run exitdocker:dev` to close Docker containers
+
+
+You can look at `./package.json` to view the npm scripts used in these steps.
 
 ## Prisma Migrations
-You must migrate Prisma schemas before working
-
-`npm run migrate:dev`
-
-Then generate the prisma client if you are getting issues with an ungenerated client. This should be automatically run during the npm install phase, otherwise:
-
-`npx prisma generate`
-
-These are both combined into one script you can also run as:
+You must migrate Prisma schemas before working. This command should also be run if you change the Prisma schema. If there is a warning about data loss, revert and attempt to change schema to not prompt the issue (i.e. add default value for new field or make it optional) 
 
 `npm run build:dev`
+
+This runs `prisma migrate dev` and `prisma generate` to update your local database with any updated schemas and generates the client for your local environment.
+
+If you are having issues, then try generating the prisma client if you are getting issues with an ungenerated client. This should be automatically run during the npm install phase, otherwise:
+
+`npx prisma generate`
 
 ## Docker
 

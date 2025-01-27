@@ -1,15 +1,17 @@
 services:
   server:
     env_file:
-      - .env.development
-    command: sh -c "npm run migrate:dev && npx nodemon -L server.js"
+      # not real production file, just local production for testing
+      - .env.production
+    # command: sh -c "npm run migrate:dev && npx nodemon -L server.js"
+    command: sh -c "npm run build:dev && node server.js"
 
     depends_on:
       db:
         condition: service_healthy
 
-    volumes:
-      - .:/usr/src/app
+    # volumes:
+    #   - .:/usr/src/app
   db:
     image: postgres
     restart: always
