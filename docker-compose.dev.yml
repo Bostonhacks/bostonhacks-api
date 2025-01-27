@@ -6,7 +6,7 @@ services:
       # not real production file, just local production for testing
       - .env.production
     # command: sh -c "npm run migrate:dev && npx nodemon -L server.js"
-    command: sh -c "npm run build:dev && node server.js"
+    command: sh -c "npm run build:prod && node server.js"
 
     depends_on:
       db:
