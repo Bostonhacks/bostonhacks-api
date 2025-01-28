@@ -1,4 +1,5 @@
 import express from "express"
+import { createGoogleUser, createEmailUser } from "../controllers/Auth.controller.js";
 
 const router = express.Router();
 
@@ -9,4 +10,8 @@ router.get("/login", ()=>{});
 // check db if using email, if so pass is required,
 // if google oauth, no password required but must set
 // authProvider field either way
-router.post("/signup", ()=>{});
+router.post("/signup/email", createEmailUser);
+
+router.post("/signup/google", createGoogleUser);
+
+export default router;

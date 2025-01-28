@@ -1,27 +1,26 @@
 {
   "dependencies": {
     "@prisma/client": "^6.2.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "dotenv-cli": "^8.0.0",
     "express": "^4.21.2",
+    "google-auth-library": "^9.15.1",
+    "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.1"
   },
   "type": "module",
   "scripts": {
     "dev": "dotenv -e .env.development -- nodemon server.js",
     "prod": "dotenv -e .env.production -- node server.js",
-
     "migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
     "migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
-
     "build:dev": "npm run migrate:dev && npx prisma generate",
     "build:prod": "npm run migrate:prod && npx prisma generate",
-
     "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
     "exitdocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down",
     "cleandocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v",
-
     "sql:dev": "docker compose -f docker-compose.sql-dev.yml up --build",
     "exitsql:dev": "docker compose -f docker-compose.sql-dev.yml down",
     "cleansql:dev": "docker compose -f docker-compose.sql-dev.yml down -v"
