@@ -26,16 +26,44 @@ export const getUser = async(req, res) => {
         if (!req.query.id && !req.query.email) {
             return res.status(400).json("id or email field is required");
         }
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findFirst({
             where: {
-                id: parseInt(req.query.id),
-                email: req.query.email
+                OR: [
+                    req.query.id ? { id: parseInt(req.query.id) } : null,
+                    req.query.email ? { email: req.query.email } : null
+                ].filter(Boolean) // Removes any null entries from the array
             }
         });
     
         res.status(200).json(user);
     
     } catch(err) {
+        console.log(err);
+        res.status(500).json(err);
+    }
+}
+
+export const deleteUser = async(req, res) => {
+    try {
+        if (!req.query.id && !req.query.email) {
+            return res.status(400).json("id or email field is required");
+        }
+        var condition = {}
+        if (req.query.id) {
+            condition = {id: parseInt(req.query)}
+        }
+        else if (req.query.email) {
+            condition = {email: req.query.email}
+        }
+        
+        const user = await prisma.user.delete({
+            where: condition
+        });
+    
+        res.status(200).json(user);
+    
+    } catch(err) {
+        console.log(err);
         res.status(500).json(err);
     }
 }

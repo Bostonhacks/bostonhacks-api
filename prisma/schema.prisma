@@ -18,24 +18,24 @@ model User {
 
 model Application {
     id              Int      @id @default(autoincrement())
-    gender          String
-    pronous         String
     age             Int
-    ethnicity       String
-    gradYear        Int
-    phoneNumber     String   @unique
-    school          String
     city            String
-    state           String
     country         String
-    educationLevel  String
-    major           String
     diet            String
+    educationLevel  String
+    ethnicity       String
+    gender          String
+    github          String
+    gradYear        Int
+    linkedin        String
+    major           String
+    phoneNumber     String   @unique
+    portfolio       String
+    pronouns        String
+    school          String
     shirtSize       String
     sleep           Boolean
-    github          String
-    linkedin        String
-    portfolio       String
+    state           String
     whyBostonhacks  String
     user            User     @relation(fields: [userId], references: [id])
     userId          Int
