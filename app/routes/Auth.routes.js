@@ -1,5 +1,5 @@
 import express from "express"
-import { createGoogleUser, createEmailUser } from "../controllers/Auth.controller.js";
+import { googleAuth, createEmailUser, googleCallback } from "../controllers/Auth.controller.js";
 
 const router = express.Router();
 
@@ -12,6 +12,8 @@ router.get("/login", ()=>{});
 // authProvider field either way
 router.post("/signup/email", createEmailUser);
 
-router.post("/signup/google", createGoogleUser);
+router.get("/login/google", googleAuth);
+
+router.get("/google/callback", googleCallback);
 
 export default router;
