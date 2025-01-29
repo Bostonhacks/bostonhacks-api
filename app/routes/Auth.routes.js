@@ -12,7 +12,7 @@ router.get("/login", ()=>{});
 // authProvider field either way
 router.post("/signup/email", createEmailUser);
 
-router.get("/login/google", googleAuth);
+router.get("/google/login", googleAuth);
 
 router.get("/google/callback", googleCallback);
 

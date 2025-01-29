@@ -89,47 +89,71 @@ export const googleAuth = async(req, res) => {
 };
 
 export const googleCallback = async(req, res) => {
-    const { code, state } = req.query;
+    try {
+       
+        let userInfo;
+        if (req.headers.authorization) {
+            // good for testing with postman, insomnia, etc. 
+            // This assumes you have already gotten an access token by means from another source (i.e. insomnia OAuth2 login with same client id)
+            userInfo = await fetch(process.env.GOOGLE_TOKEN_INFO_URL, {
+                headers: { Authorization: req.headers.authorization }
+            }).then(res => res.json());
 
-    // check if state matches
-    // if (!state || state !== req.session.oauthstate) {
-    //     return res.status(400).json({
-    //         message: "Invalid state"
-    //     });
-    // }
+        } else {
+            // normal auth flow
 
-    // delete req.session.oauthstate;
+            const { code, state } = req.query;
 
-    const response = await fetch(process.env.GOOGLE_ACCESS_TOKEN_URL, {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            code,
-            client_id: process.env.GOOGLE_CLIENT_ID,
-            client_secret: process.env.GOOGLE_CLIENT_SECRET,
-            redirect_uri: process.env.GOOGLE_CALLBACK_URL,
-            grant_type: "authorization_code"
-        })
-    });
+            // check if state matches
+            // if (!state || state !== req.session.oauthstate) {
+            //     return res.status(400).json({
+            //         message: "Invalid state"
+            //     });
+            // }
+        
+            // delete req.session.oauthstate;
+        
+            const response = await fetch(process.env.GOOGLE_ACCESS_TOKEN_URL, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    code,
+                    client_id: process.env.GOOGLE_CLIENT_ID,
+                    client_secret: process.env.GOOGLE_CLIENT_SECRET,
+                    redirect_uri: process.env.GOOGLE_CALLBACK_URL,
+                    grant_type: "authorization_code"
+                })
+            });
+        
+            const accessToken = await response.json();
+        
+            if (!accessToken || accessToken?.error) {
+                return res.status(400).json({
+                    message: "Invalid code"
+                });
+            }
+            
+            // get token info
+            userInfo = await fetch(process.env.GOOGLE_TOKEN_INFO_URL, {
+                headers: { Authorization: `Bearer ${accessToken.access_token}` }
+            }).then(res => res.json());
+        
+            
+        }
 
-    const accessToken = await response.json();
+        // create user if not already exists
+        
+        // sign JWT token and set cookie
 
-    if (!accessToken || accessToken?.error) {
-        return res.status(400).json({
-            message: "Invalid code"
-        });
+        
+    
+        res.status(200).json(userInfo);
+    } catch(err) {
+        res.status(500).json(err);
     }
     
-    // get token info
-    const userInfo = await fetch(process.env.GOOGLE_TOKEN_INFO_URL, {
-        headers: { Authorization: `Bearer ${accessToken.access_token}` }
-    }).then(res => res.json());
-
-    // create user if not already exists
-
-    res.status(200).json(userInfo);
 };
 
 export const createEmailUser = async(req, res) => {
