@@ -8,6 +8,8 @@ Every time you update `prisma/schema.prisma` you must update the Prisma migratio
 
 Please do not add any sensitive keys/info to the public repository. All private keys/values should be placed in an `.env.*` or added to `.gitignore`.
 
+You may realize that this does a lot things from scratch. The point of this is to give a deeper understanding of underlying abstractions such as auth. It's suggested to read through some of the code flows to better understand underlying processes.
+
 
 # To Run
 You must have NodeJS and Docker Desktop installed.

@@ -12,6 +12,7 @@ model User {
     email       String   @unique
     firstName   String   
     lastName    String
+    avatar      String?
     role        Role     @default(USER)
     applications Application[]
     authProvider AuthProvider @default(EMAIL)
