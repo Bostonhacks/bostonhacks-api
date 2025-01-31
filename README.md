@@ -71,19 +71,21 @@ Run the application using:
 
 `npm run docker:dev`
 
+
 If you don't need to override the standard compose file, start your application by running:
 
 `docker-compose up --build`.
 
-Your application will be available at http://localhost:8000.
+Your application will be available at http://localhost:8000
+
 
 To stop the application:
 
-`docker compose down`
+`npm run exitdocker:dev`
 
 To remove containers:
 
-`docker compose rm`
+`npm run cleandocker:dev`
 
 
 
