@@ -5,6 +5,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import session from "express-session";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+import swaggerDefinition from "./swaggerconfig.js";
 
 // database connection
 import prisma from "./app/database/Prisma.js";
@@ -46,6 +49,12 @@ app.use("/api/auth", AuthRoutes);
 
 // expose public folder
 app.use(express.static(path.join(path.resolve(), 'public')));
+
+// expose swagger docs
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc({
+  swaggerDefinition,
+  apis: ["./app/routes/*.js"],
+})))
 
 
 

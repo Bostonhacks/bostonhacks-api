@@ -20,27 +20,33 @@ There are two ways to run this API
 1. For local, active development
    1. Look at `.env.example` to create your own `.env.development` file
    2. Run `npm run sql:dev` to start a local db with Docker
-   3. Look at "Prisma Migrations" section to sync the schemas with your own Postgres database
-      1. Essentially just run `npm run build:dev`
-   4. `npm run dev` to run locally
+   3. Run `npm run build:dev` to run SQL migrations and build the Prisma Client
+   4. `npm run dev` to run the server locally
       - Must have `.env.development` file 
-   5. Run `npm run exitsql:dev` to exit Docker SQL container
+   5. Run `npm run exitsql:dev` to exit Docker SQL container. Your data will persist even after closing the container.
       1. Optionally run `npm run cleansql:dev` to exit the SQL container and delete persistent storage.
 
-2. With a Docker container. This should be used as the last step to test your changes to see if they work before you push code. You can try to actively develop with this, but it is strongly advised against since code does not auto-update when developing locally and Schema changes will not be applied until you create a Prisma migration locally first.
+2. With a Docker container. This should be used as the last step to test your changes to see if they work before you push code. You can try to actively develop with this, but will have some issues since code does not auto-update when developing locally and Schema changes will not be applied until you create a Prisma migration locally first.
    1. All code must work in the Docker container since our work deploys with Docker containers.
-   2. Create a `.env.test` file as specified in `.env.example`
-   3. If you changed schemas, run `npm run build:dev` to create a migration. If you don't do this, then your changes will not be reflected in the test environment.
-   4. Run `npm run docker:dev` to start the docker container
+   2. Ensure no other programs are using ports 8000. If you run into issues, try closing containers first.
+   3. Create a `.env.test` file as specified in `.env.example`
+   4. If you changed schemas, run `npm run build:dev` to create a migration. If you don't do this, then your changes will not be reflected in the test environment.
+   5. Run `npm run docker:dev` to start the docker container
       1. `npm run exitdocker:dev` to exit containers
       2. `npm run cleandocker:dev` to exit containers and remove created volumes
       3. Refer to [Docker](#docker) section to understand more
-   5. Run `npm run exitdocker:dev` to close Docker containers
+   6. Run `npm run exitdocker:dev` to close Docker containers
 
 Before you push any changes, please make sure to check if your changes work by running them in the Docker containers in (2). Then add your changes to a branch, push to the GitHub repo and create a pull request. You might have to run `npm run build:dev` if you updated `/prisma/schema.prisma`
 **Do not push directly into main**
 
 You can look at `./package.json` to view the npm scripts used in these steps.
+
+# Documentation
+Documentation is automated with Swagger-JSDoc and Swagger-UI. Please refer to: 
+- [OpenAPI Docs](https://swagger.io/docs/specification/v3_0/about/) for OpenAPI documentation spec
+- [How to Document an Express API with Swagger UI and JSDoc](https://dev.to/kabartolo/how-to-document-an-express-api-with-swagger-ui-and-jsdoc-50do) for a tutorial on using JSDoc with Swagger. 
+- `./app/routes/OpenAPISchemas.js` and `./app/routes/User.routes.js` for some examples
 
 ## Prisma Migrations
 You must migrate Prisma schemas before working and after every time you update `/prisma/schema.prisma`. This command should also be run if you change the Prisma schema. If there is a warning about data loss, revert and attempt to change schema to not prompt the issue (i.e. add default value for new field or make it optional) 
