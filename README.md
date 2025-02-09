@@ -43,12 +43,12 @@ Before you push any changes, please make sure to check if your changes work by r
 You can look at `./package.json` to view the npm scripts used in these steps.
 
 # Documentation
-Documentation is automated with Swagger-JSDoc and Swagger-UI. Please refer to: 
+Documentation is automated with Swagger-JSDoc and Swagger-UI and availble at `{base_url}/api/docs`. Please refer to: 
 - [OpenAPI Docs](https://swagger.io/docs/specification/v3_0/about/) for OpenAPI documentation spec
 - [How to Document an Express API with Swagger UI and JSDoc](https://dev.to/kabartolo/how-to-document-an-express-api-with-swagger-ui-and-jsdoc-50do) for a tutorial on using JSDoc with Swagger. 
 - `./app/routes/OpenAPISchemas.js` and `./app/routes/User.routes.js` for some examples
 
-## Prisma Migrations
+# Prisma Migrations
 You must migrate Prisma schemas before working and after every time you update `/prisma/schema.prisma`. This command should also be run if you change the Prisma schema. If there is a warning about data loss, revert and attempt to change schema to not prompt the issue (i.e. add default value for new field or make it optional) 
 
 `npm run build:dev`
@@ -59,17 +59,17 @@ If you are having issues, then try generating the prisma client if you are getti
 
 `npx prisma generate`
 
-### How Prisma works (if you want to know)
+## How Prisma works (if you want to know)
 Prisma is an ORM for many different databases, one of which is PostgreSQL. We define our schemas in `/prisma/schema.prisma` and then create a migration and a Prisma client with the defined schemas.
 
 You can refer to [here](https://www.prisma.io/docs/orm/prisma-migrate/workflows/development-and-production) for more info on migrations.
 - Essentially must have a migration history using `prisma migrate dev` and in production environments deploy migrations with `prisma migrate deploy`
 
-## Docker
+# Docker
 
 Can look [here](https://docs.docker.com/guides/nodejs/develop/) for help
 
-### Building and running your application with Docker
+## Building and running your application with Docker
 
 Run the application using:
 
@@ -96,7 +96,7 @@ To remove containers:
 
 
 
-### Deploying your application to the cloud
+## Deploying your application to the cloud
 
 First, build your image, e.g.: `docker build -t myapp .`.
 If your cloud uses a different CPU architecture than your development
