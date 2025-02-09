@@ -11,7 +11,7 @@ export const getUser = async(req, res) => {
         }
 
         // verify logged in user matches requested user
-        if (req.user.id !== parseInt(req.query.id) && req.user.email !== req.query.email) {
+        if ((req.query.id && req.user.id !== parseInt(req.query.id)) || (req.query.email && req.user.email !== req.query.email)) {
             return res.status(403).json({
                 message: "You are not authorized to access this resource"
             });
