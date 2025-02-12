@@ -2,12 +2,13 @@ import { auth, OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import prismaInstance from "../database/Prisma.js";
+import logger from "../logger/logger.js";
 
 const prisma = prismaInstance;
 
 
 // create new OAuth2Client instance
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const GOOGLE_OAUTH_SCOPES = [
     "https://www.googleapis.com/auth/userinfo.email",
@@ -105,21 +106,21 @@ You can switch to a complete backend auth system by uncommenting
 the next two functions and the routes associated with them */
 export const googleAuth = async(req, res) => {
     try {
-
+        logger.info("Google auth initiated");
         const state = crypto.randomBytes(32).toString('hex');
        
         // sign cookie with jwt with state
-        const oauthstate = jwt.sign({ state }, process.env.JWT_SECRET, { expiresIn: '5m' });
+        // const oauthstate = jwt.sign({ state }, process.env.JWT_SECRET, { expiresIn: '5m' });
         
         const scopes = GOOGLE_OAUTH_SCOPES.join(" ");
         const GOOGLE_OAUTH_CONSENT_SCREEN_URL = `${process.env.GOOGLE_OAUTH_URL}?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_CALLBACK_URL}&access_type=offline&response_type=code&state=${state}&scope=${scopes}`;
 
-        res.cookie("oauthstate", oauthstate, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 5 * 60 * 1000 // 5 minutes
-        });
+        // res.cookie("oauthstate", oauthstate, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     maxAge: 5 * 60 * 1000 // 5 minutes
+        // });
        
 
         
@@ -186,7 +187,9 @@ export const googleCallback = async(req, res) => {
                 headers: { Authorization: `Bearer ${accessToken.access_token}` }
             }).then(res => res.json());
 
-            if (!userInfo.email_verified) {
+            logger.debug({ userInfo }, "Google auth data");
+
+            if (!userInfo.verified_email) {
                 return res.status(401).json({ message: 'Email not verified' });
             }
         
@@ -216,12 +219,18 @@ export const googleCallback = async(req, res) => {
             { expiresIn: '24h' }
         );
 
+
         res.cookie('access_token', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
         }).status(200).json(user);
+
+        logger.info({
+            message:"Google auth login",
+            user: user
+        })
         
     
         // res.status(200).json(userInfo);

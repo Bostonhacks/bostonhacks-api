@@ -4,7 +4,7 @@ import { googleAuth, createEmailUser, googleCallback } from "../controllers/Auth
 const router = express.Router();
 
 // should ideally be email or oauth login using JWT cookies set as HTTPOnly and SameSite
-router.get("/login", ()=>{});
+// router.get("/login", ()=>{});
 
 // either google oauth or email 
 // check db if using email, if so pass is required,

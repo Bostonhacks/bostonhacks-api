@@ -8,6 +8,7 @@ import session from "express-session";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import swaggerDefinition from "./swaggerconfig.js";
+import logger from "./app/logger/logger.js";
 
 // database connection
 import prisma from "./app/database/Prisma.js";
@@ -68,6 +69,7 @@ const startServer = async () => {
     // start server
     const server = app.listen(process.env.PORT, () => {
       console.log(`Server is running on port ${process.env.PORT} with ${process.env.NODE_ENV} environment`);
+      logger.info("Server started");
     });
 
     // Graceful shutdown
