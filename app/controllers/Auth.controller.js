@@ -255,6 +255,8 @@ export const createEmailUser = async(req, res) => {
             //     });
             // }
 
+            // add input validation
+
             // const user = await prisma.user.create({
             //     data: {
             //         email: req.body.email,

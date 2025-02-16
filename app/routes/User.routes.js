@@ -10,11 +10,13 @@ const router = express.Router();
 /**
  * @openapi
  * 
- * /api/user:
+ * /user:
  *  get:
  *      summary: Get user info
  *      description: Retrieve user info via email, id, or both. Requires authentication token.
  *      tags: [User]
+ *      security:
+ *          - accessToken: []
  *      parameters:
  *          - in: cookie
  *            name: access_token
@@ -35,23 +37,9 @@ const router = express.Router();
  *                          type: object
  *                          $ref: "#/components/schemas/User"
  *          403:
- *              description: Unauthorized access
- *              content:
- *                  application/json:
- *                      schema:
- *                          type: object
- *                          properties:
- *                              message: 
- *                                  type: string
- *                                  example: Request not allowed
+ *              $ref: "#/components/responses/403forbidden"
  *          500:
- *              description: Internal Server Error
- *              content: 
- *                  application/json:
- *                      schema:
- *                          type: object
- *                          $ref: "#/components/schemas/InternalServerError"
- * 
+ *              $ref: "#/components/responses/500internalservererror"
  */
 router.get("/", verifyToken, getUser);
 
