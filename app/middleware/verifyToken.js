@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 
+
 export const verifyToken = (req, res, next) => {
     const token = req.cookies?.access_token;
 
@@ -17,7 +18,8 @@ export const verifyToken = (req, res, next) => {
     } catch (err) {
         res.clearCookie("access_token");
         return res.status(401).json({
-            message: "Invalid token"
+            message: "Invalid token",
+            error: err
         });
     }
 }

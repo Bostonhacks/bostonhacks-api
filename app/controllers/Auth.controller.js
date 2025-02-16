@@ -1,13 +1,14 @@
-import { auth, OAuth2Client } from "google-auth-library";
+// import { auth, OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import prismaInstance from "../database/Prisma.js";
+import logger from "../utils/logger.js";
 
 const prisma = prismaInstance;
 
 
 // create new OAuth2Client instance
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const GOOGLE_OAUTH_SCOPES = [
     "https://www.googleapis.com/auth/userinfo.email",
@@ -127,6 +128,7 @@ export const googleAuth = async(req, res) => {
 
 
     } catch(err) {
+        logger.error(err);
         res.status(500).json(err);
     }
     
@@ -146,7 +148,8 @@ export const googleCallback = async(req, res) => {
         } else {
             // normal auth flow
 
-            const { code, state } = req.query;
+            const { code } = req.query;
+            // const { state } = req.query;
 
 
         
@@ -216,6 +219,8 @@ export const googleCallback = async(req, res) => {
             { expiresIn: '24h' }
         );
 
+        logger.info(`User with email ${userInfo.email} logged in or created`)
+
         res.cookie('access_token', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -226,6 +231,7 @@ export const googleCallback = async(req, res) => {
     
         // res.status(200).json(userInfo);
     } catch(err) {
+        logger.error(err);
         res.status(500).json(err);
     }
     

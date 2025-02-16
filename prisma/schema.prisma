@@ -43,12 +43,20 @@ model Application {
     applicationYear Int
     user            User     @relation(fields: [userId], references: [id])
     userId          Int
+    status          Status   @default(PENDING)
 }
 
 
 enum Role {
     USER
     ADMIN
+}
+
+enum Status {
+    PENDING
+    ACCEPTED
+    WAITLISTED
+    REJECTED
 }
 
 enum AuthProvider {

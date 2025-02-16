@@ -10,62 +10,93 @@ const swaggerDefinition ={
             "User": {
                 "type": "object",
                 "required": [
-                "id",
-                "email",
-                "firstName",
-                "lastName"
+                    "id",
+                    "email",
+                    "firstName",
+                    "lastName"
                 ],
                 "properties": {
-                "id": {
-                    "type": "integer",
-                    "description": "User's unique ID",
-                    "readOnly": true,
-                    "example": 3,
-                    "unique": true
-                },
-                "email": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "User's email address",
-                    "example": "user@example.com",
-                    "unique": true
-                },
-                "firstName": {
-                    "type": "string",
-                    "description": "User's first name",
-                    "example": "John"
-                },
-                "lastName": {
-                    "type": "string",
-                    "description": "User's last name",
-                    "example": "Doe"
-                },
-                "avatar": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "URL to user's profile picture",
-                    "example": "https://example.com/avatar.jpg"
-                },
-                "role": {
-                    "type": "string",
-                    "enum": ["USER", "ADMIN"],
-                    "default": "USER",
-                    "description": "User's role in the system",
-                    "example": "USER"
-                },
-                "authProvider": {
-                    "type": "string",
-                    "enum": ["EMAIL", "GOOGLE"],
-                    "default": "EMAIL",
-                    "description": "Authentication method used",
-                    "example": "GOOGLE"
-                },
-                "password": {
-                    "type": "string",
-                    "nullable": true,
-                    "writeOnly": true,
-                    "description": "Password (only for EMAIL auth)"
+                    "id": {
+                        "type": "integer",
+                        "description": "User's unique ID",
+                        "readOnly": true,
+                        "example": 3,
+                        "unique": true
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "User's email address",
+                        "example": "user@example.com",
+                        "unique": true
+                    },
+                    "firstName": {
+                        "type": "string",
+                        "description": "User's first name",
+                        "example": "John"
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "description": "User's last name",
+                        "example": "Doe"
+                    },
+                    "avatar": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "URL to user's profile picture",
+                        "example": "https://example.com/avatar.jpg"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": ["USER", "ADMIN"],
+                        "default": "USER",
+                        "description": "User's role in the system",
+                        "example": "USER"
+                    },
+                    "authProvider": {
+                        "type": "string",
+                        "enum": ["EMAIL", "GOOGLE"],
+                        "default": "EMAIL",
+                        "description": "Authentication method used",
+                        "example": "GOOGLE"
+                    },
+                    "password": {
+                        "type": "string",
+                        "nullable": true,
+                        "writeOnly": true,
+                        "description": "Password (only for EMAIL auth)"
+                    },
+                    "applications": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Application"
+                        }
+                    }
                 }
+            },
+            "Application": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Application's unique ID",
+                        "readOnly": true,
+                        "example": 1,
+                        "unique": true
+                    },
+                    "userId": {
+                        "type": "integer",
+                        "description": "ID of the user who submitted the application",
+                        "example": 3
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["PENDING", "ACCEPTED", "REJECTED"],
+                        "default": "PENDING",
+                        "description": "Application's current status",
+                        "example": "PENDING"
+                    },
+                    // Add other application fields as necessary
                 }
             },
             "Error": {
