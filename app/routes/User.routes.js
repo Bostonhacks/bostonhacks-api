@@ -38,9 +38,14 @@ const router = express.Router();
  *                          $ref: "#/components/schemas/User"
  *          403:
  *              $ref: "#/components/responses/403forbidden"
+ *          401:
+ *              $ref: "#/components/responses/401unauthorized"
  *          500:
  *              $ref: "#/components/responses/500internalservererror"
  */
 router.get("/", verifyToken, getUser);
+
+// update user should prevent updates to certain fields
+// router.put("/:id", verifyToken, updateUser);
 
 export default router;

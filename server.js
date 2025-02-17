@@ -50,13 +50,17 @@ app.use("/api/auth", AuthRoutes);
 app.use("/api/application", ApplicationRoutes)
 
 // expose public folder
-app.use(express.static(path.join(path.resolve(), 'public')));
+// app.use(express.static(path.join(path.resolve(), 'public')));
 
 // expose swagger docs
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc({
   swaggerDefinition,
   apis: ["./app/routes/*.js"],
 })))
+
+app.get("/", (req, res) => {
+  res.redirect("/api/docs");
+});
 
 
 

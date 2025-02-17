@@ -7,7 +7,9 @@ const prisma = prismaInstance;
 export const getUser = async(req, res) => {
     try {
         if (!req.query.id && !req.query.email) {
-            return res.status(400).json("id or email field is required");
+            return res.status(400).json({
+                message: "id or email query is required"
+            });
         }
 
         // verify logged in user matches requested user

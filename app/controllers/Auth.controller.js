@@ -226,7 +226,10 @@ export const googleCallback = async(req, res) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        }).status(200).json(user);
+        }).status(200).json({
+            message: "User logged in successfully",
+            user: user
+        });
         
     
         // res.status(200).json(userInfo);

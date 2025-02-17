@@ -7,22 +7,26 @@ const prisma = prismaInstance;
 export const getApplication = async(req, res) => {
     try {
         if (!req.params.id) {
-            return res.status(400).json("id parameter is required");
+            return res.status(400).json({
+                message: "id parameter is required"
+            });
         }
 
+        const application = await prisma.application.findUnique({
+            where: {
+                id: parseInt(req.params.id),
+            }
+        });
+
         // verify logged in user matches requested user
-        if (req.user.id !== parseInt(req.params.id)) {
+        if (req.user.id !== parseInt(application?.userId)) {
             logger.warn(`Attempted unauthorized access to application with id ${req.params.id}`);
             return res.status(403).json({
                 message: "You are not authorized to access this resource"
             });
         }
         
-        const application = await prisma.application.findUnique({
-            where: {
-                id: parseInt(req.params.id),
-            }
-        });
+        
         logger.info(`Application with id ${req.params.id} retrieved`)
 
         return res.status(200).json(application);
@@ -38,12 +42,16 @@ export const getApplication = async(req, res) => {
 export const getUserApplications = async(req, res) => {
     try {
         if (!req.query.user_id) {
-            return res.status(400).json("id field is required");
+            return res.status(400).json({
+                message: "id field is required"
+            });
         }
 
         // verify logged in user matches requested user
         if (req.user.id !== parseInt(req.query.user_id)) {
             logger.warn(`Attempted unauthorized access to application with id ${req.query.user_id}`);
+            logger.debug(`User id: ${req.user.id} | Application id: ${req.params.id}`);
+
             return res.status(403).json({
                 message: "You are not authorized to access this resource"
             });
@@ -134,7 +142,10 @@ export const createApplication = async (req, res) => {
 
         logger.info(`Application with id ${application.id} created by user with id ${req.user.id}`)
 
-        return res.status(201).json(application);
+        return res.status(201).json({
+            message: "Application created successfully",
+            application: application
+        });
     } catch (err) {
         logger.error(err);
         return res.status(500).json({

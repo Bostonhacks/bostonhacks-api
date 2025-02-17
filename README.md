@@ -34,7 +34,8 @@ There are two ways to run this API
    5. Run `npm run docker:dev` to start the docker container
       1. `npm run exitdocker:dev` to exit containers
       2. `npm run cleandocker:dev` to exit containers and remove created volumes
-      3. Refer to [Docker](#docker) section to understand more
+      3. Sometimes you might have to docker-compose down (exitdocker) to start again.
+      4. Refer to [Docker](#docker) section to understand more
    6. Run `npm run exitdocker:dev` to close Docker containers
 
 Before you push any changes, please make sure to check if your changes work by running them in the Docker containers in (2). Then add your changes to a branch, push to the GitHub repo and create a pull request. You might have to run `npm run build:dev` if you updated `/prisma/schema.prisma`
@@ -47,6 +48,12 @@ Documentation is automated with Swagger-JSDoc and Swagger-UI and availble at `{b
 - [OpenAPI Docs](https://swagger.io/docs/specification/v3_0/about/) for OpenAPI documentation spec
 - [How to Document an Express API with Swagger UI and JSDoc](https://dev.to/kabartolo/how-to-document-an-express-api-with-swagger-ui-and-jsdoc-50do) for a tutorial on using JSDoc with Swagger. 
 - `./app/routes/OpenAPISchemas.js` and `./app/routes/User.routes.js` for some examples
+
+# Logging
+Logging is done with winston. Ensure that there is an environment variable with `LOG_LEVEL` set so that the logger logs at the correct level.
+
+# Linting
+Linting is done with eslint. Please run `npx eslint .` or `npx eslint yourfile.js` to check for linting errors.
 
 # Prisma Migrations
 You must migrate Prisma schemas before working and after every time you update `/prisma/schema.prisma`. This command should also be run if you change the Prisma schema. If there is a warning about data loss, revert and attempt to change schema to not prompt the issue (i.e. add default value for new field or make it optional) 

@@ -2,7 +2,7 @@ const swaggerDefinition ={
     "openapi": "3.0.0",
     "info": {
         "title": "BostonHacks API Documentation",
-        "description": "BostonHacks public API used for main website",
+        "description": "BostonHacks public API used for main website. Many endpoints require authorization via JWT. Obtaining this token is outlined in the Auth section.",
         "version": "1.0.0"
     },
     "components": {
@@ -76,6 +76,23 @@ const swaggerDefinition ={
             },
             "Application": {
                 "type": "object",
+                "required": [
+                    "gender",
+                    "pronous",
+                    "age",
+                    "ethnicity",
+                    "gradYear",
+                    "phoneNumber",
+                    "school",
+                    "city",
+                    "state",
+                    "country",
+                    "educationLevel",
+                    "major",
+                    "diet",
+                    "shirtSize",
+                    "whyBostonhacks"
+                ],
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -84,19 +101,129 @@ const swaggerDefinition ={
                         "example": 1,
                         "unique": true
                     },
+                    "gender": {
+                        "type": "string",
+                        "description": "Applicant's gender",
+                        "example": "Male"
+                    },
+                    "pronous": {
+                        "type": "string",
+                        "description": "Applicant's preferred pronouns",
+                        "example": "he/him"
+                    },
+                    "age": {
+                        "type": "integer",
+                        "description": "Applicant's age",
+                        "minimum": 13,
+                        "maximum": 100,
+                        "example": 20
+                    },
+                    "ethnicity": {
+                        "type": "string",
+                        "description": "Applicant's ethnicity",
+                        "example": "Asian"
+                    },
+                    "gradYear": {
+                        "type": "integer",
+                        "description": "Expected graduation year",
+                        "minimum": 2024,
+                        "example": 2025
+                    },
+                    "phoneNumber": {
+                        "type": "string",
+                        "description": "Contact phone number",
+                        "pattern": "^\\+?[\\d\\s-]{10,}$",
+                        "example": "+1-555-123-4567",
+                        "unique": true
+                    },
+                    "school": {
+                        "type": "string",
+                        "description": "Current school/university",
+                        "example": "Boston University"
+                    },
+                    "city": {
+                        "type": "string",
+                        "description": "City of residence",
+                        "example": "Boston"
+                    },
+                    "state": {
+                        "type": "string",
+                        "description": "State/province of residence",
+                        "example": "Massachusetts"
+                    },
+                    "country": {
+                        "type": "string",
+                        "description": "Country of residence",
+                        "example": "United States"
+                    },
+                    "educationLevel": {
+                        "type": "string",
+                        "description": "Current level of education",
+                        "example": "Undergraduate"
+                    },
+                    "major": {
+                        "type": "string",
+                        "description": "Field of study",
+                        "example": "Computer Science"
+                    },
+                    "diet": {
+                        "type": "string",
+                        "description": "Dietary restrictions/preferences",
+                        "example": "Vegetarian"
+                    },
+                    "shirtSize": {
+                        "type": "string",
+                        "description": "T-shirt size preference",
+                        "enum": ["XS", "S", "M", "L", "XL", "XXL"],
+                        "example": "M"
+                    },
+                    "sleep": {
+                        "type": "boolean",
+                        "description": "Whether overnight accommodation is needed",
+                        "example": true
+                    },
+                    "github": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "GitHub profile URL",
+                        "example": "https://github.com/johndoe"
+                    },
+                    "linkedin": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "LinkedIn profile URL",
+                        "example": "https://linkedin.com/in/johndoe"
+                    },
+                    "portfolio": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "Personal portfolio URL",
+                        "example": "https://johndoe.dev"
+                    },
+                    "whyBostonhacks": {
+                        "type": "string",
+                        "description": "Motivation for attending BostonHacks",
+                        "minLength": 50,
+                        "maxLength": 500,
+                        "example": "I'm passionate about hackathons and want to collaborate with other developers..."
+                    },
+                    "applicationYear": {
+                        "type": "integer",
+                        "description": "Year of application submission",
+                        "example": 2025
+                    },
                     "userId": {
                         "type": "integer",
                         "description": "ID of the user who submitted the application",
-                        "example": 3
+                        "example": 1
                     },
                     "status": {
                         "type": "string",
-                        "enum": ["PENDING", "ACCEPTED", "REJECTED"],
+                        "enum": ["PENDING", "ACCEPTED", "WAITLISTED", "REJECTED"],
                         "default": "PENDING",
-                        "description": "Application's current status",
+                        "description": "Current status of the application",
                         "example": "PENDING"
-                    },
-                    // Add other application fields as necessary
+                    }
                 }
             },
             "Error": {
@@ -112,6 +239,17 @@ const swaggerDefinition ={
                 }
             }
         },
+        "parameters": {
+            "access_token": {
+                "name": "access_token",
+                "in": "cookie",
+                "required": true,
+                "description": "Login token",
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
         "responses": {
             "500internalservererror": {
                 "description": "Something went wrong",
@@ -121,20 +259,20 @@ const swaggerDefinition ={
                     "type": "object",
                     "properties": {
                         "message": {
-                        "type": "string",
-                        "example": "Something went wrong"
+                            "type": "string",
+                            "example": "Something went wrong"
                         },
                         "error": {
-                        "type": "object",
-                        "example": {
-                            "prismaMessage": "Message is here and something went wrong"
+                            "type": "object",
+                            "example": {
+                                "prismaMessage": "Message is here and something went wrong"
+                            }
+                            }
                         }
-                        }
-                    }
                     }
                 }
-            }
-        },
+                }
+            },
             "403forbidden": {
                 "description": "Forbidden request",
                 "content": {
@@ -166,6 +304,22 @@ const swaggerDefinition ={
                     }
                 }
                 }
+            },
+            "400badrequest": {
+                "description": "Bad request",
+                "content": {
+                "application/json": {
+                    "schema": {
+                    "type": "object",
+                    "properties": {
+                        "message": {
+                        "type": "string",
+                        "example": "Bad request"
+                        }
+                    }
+                    }
+                }
+                }
             }
         },
         "securitySchemas": {
@@ -183,11 +337,11 @@ const swaggerDefinition ={
     },
     "servers": [
         {
-            "url": "http://localhost:8000",
+            "url": "http://localhost:8000/api",
             "description": "Local server"
         },
         {
-            "url": "https://api.example.com"
+            "url": "https://api.example.com/api"
         }
     ]
 
