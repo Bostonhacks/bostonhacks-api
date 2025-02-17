@@ -15,6 +15,7 @@ import prisma from "./app/database/Prisma.js";
 // routers
 import UserRoutes from "./app/routes/User.routes.js";
 import AuthRoutes from "./app/routes/Auth.routes.js";
+import ApplicationRoutes from "./app/routes/Application.routes.js";
 
 // set correct config file
 if (!process.env.NODE_ENV) {
@@ -46,15 +47,20 @@ app.use(session({
 app.use("/test", TestRoutes);
 app.use("/api/user", UserRoutes);
 app.use("/api/auth", AuthRoutes);
+app.use("/api/application", ApplicationRoutes)
 
 // expose public folder
-app.use(express.static(path.join(path.resolve(), 'public')));
+// app.use(express.static(path.join(path.resolve(), 'public')));
 
 // expose swagger docs
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc({
   swaggerDefinition,
   apis: ["./app/routes/*.js"],
 })))
+
+app.get("/", (req, res) => {
+  res.redirect("/api/docs");
+});
 
 
 

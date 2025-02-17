@@ -13,7 +13,8 @@
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.17.0"
   },
   "type": "module",
   "scripts": {
@@ -23,14 +24,18 @@
     "migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
     "build:dev": "npm run migrate:dev && npx prisma generate",
     "build:prod": "npm run migrate:prod && npx prisma generate",
-    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d",
     "exitdocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down",
     "cleandocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v",
-    "sql:dev": "docker compose -f docker-compose.sql-dev.yml up --build",
+    "sql:dev": "docker compose -f docker-compose.sql-dev.yml up --build -d",
     "exitsql:dev": "docker compose -f docker-compose.sql-dev.yml down",
-    "cleansql:dev": "docker compose -f docker-compose.sql-dev.yml down -v"
+    "cleansql:dev": "docker compose -f docker-compose.sql-dev.yml down -v",
+    "prismastudio:dev": "dotenv -e .env.development -- npx prisma studio"
   },
   "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.1",
+    "globals": "^15.15.0",
     "nodemon": "^3.1.9",
     "prisma": "^6.2.1"
   }
