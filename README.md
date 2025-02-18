@@ -25,13 +25,14 @@ There are two ways to run this API
       - Must have `.env.development` file 
    5. Run `npm run exitsql:dev` to exit Docker SQL container. Your data will persist even after closing the container.
       1. Optionally run `npm run cleansql:dev` to exit the SQL container and delete persistent storage.
+   6. Optionally run `npx prisma studio` to easily manage/view data.
 
 2. With a Docker container. This should be used as the last step to test your changes to see if they work before you push code. You can try to actively develop with this, but will have some issues since code does not auto-update when developing locally and Schema changes will not be applied until you create a Prisma migration locally first.
    1. All code must work in the Docker container since our work deploys with Docker containers.
    2. Ensure no other programs are using ports 8000. If you run into issues, try closing containers first.
    3. Create a `.env.test` file as specified in `.env.example`
    4. If you changed schemas, run `npm run build:dev` to create a migration. If you don't do this, then your changes will not be reflected in the test environment.
-   5. Run `npm run docker:dev` to start the docker container
+   5. Run `npm run docker:dev` to start the docker container. The API will be available at `localhost:8000`. Prisma Studio will also be available at `localhost:5555`
       1. `npm run exitdocker:dev` to exit containers
       2. `npm run cleandocker:dev` to exit containers and remove created volumes
       3. Sometimes you might have to docker-compose down (exitdocker) to start again.
@@ -55,7 +56,12 @@ Logging is done with winston. Ensure that there is an environment variable with 
 # Linting
 Linting is done with eslint. Please run `npx eslint .` or `npx eslint yourfile.js` to check for linting errors.
 
-# Prisma Migrations
+# Prisma
+
+## Prisma Studio
+Run `npx prisma studio` to view and manage your data with a nice UI.
+
+## Prisma Migrations
 You must migrate Prisma schemas before working and after every time you update `/prisma/schema.prisma`. This command should also be run if you change the Prisma schema. If there is a warning about data loss, revert and attempt to change schema to not prompt the issue (i.e. add default value for new field or make it optional) 
 
 `npm run build:dev`
