@@ -1,5 +1,5 @@
 # BostonHacks-API
-API used for various applications such as judging, yearly website, etc.
+API used for various applications such as judging, yearly website, etc. The goal of using this instead of Firebase as was done in the past for our backend logic is to make our codebase platform-agnostic. As a organization with constantly rotating members and limited access to some vital resources (like a phone number), deployments can move around-often times to personal accounts if a phone number/payment method is required. As such, the API is built using ExpressJS and interfaces with a PostgreSQL database that can be hosted anywhere interfaced with Prisma ORM. There is also the option to dockerize (preferred method) so that moving to a different deployment site if needed is easier. 
 
 # Notes
 Follow this file structure [here](https://dev.to/mr_ali3n/folder-structure-for-nodejs-expressjs-project-435l)
