@@ -45,21 +45,21 @@ app.use(session({
 
 /* Routes */
 app.use("/test", TestRoutes);
-app.use("/api/user", UserRoutes);
-app.use("/api/auth", AuthRoutes);
-app.use("/api/application", ApplicationRoutes)
+app.use("/user", UserRoutes);
+app.use("/auth", AuthRoutes);
+app.use("/application", ApplicationRoutes)
 
 // expose public folder
 // app.use(express.static(path.join(path.resolve(), 'public')));
 
 // expose swagger docs
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc({
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc({
   swaggerDefinition,
   apis: ["./app/routes/*.js"],
 })))
 
 app.get("/", (req, res) => {
-  res.redirect("/api/docs");
+  res.redirect("/docs");
 });
 
 
