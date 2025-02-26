@@ -2,6 +2,8 @@ name: Migrate Database
 
 on:
   push:
+    paths:
+      - prisma/migrations/**
     branches:
       - main
   workflow_dispatch:
