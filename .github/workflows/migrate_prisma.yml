@@ -20,8 +20,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Prisma
-        run: npm install prisma @prisma/client --no-save
+      - name: Install Dependencies
+        run: npm install
 
       - name: Run Prisma Migrations
         run: npx prisma migrate deploy
