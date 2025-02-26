@@ -43,7 +43,7 @@ USER node
 # Expose the port that the application listens on.
 EXPOSE 8000
 
-# RUN npm run migrate:dev
+RUN npx prisma migrate deploy
 
 # Run the application.
 CMD ["node", "server.js"]
