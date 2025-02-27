@@ -12,6 +12,7 @@
     "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.1",
+    "supertest": "^7.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.17.0"
@@ -20,22 +21,27 @@
   "scripts": {
     "dev": "dotenv -e .env.development -- nodemon server.js",
     "prod": "dotenv -e .env.production -- node server.js",
+    "test:dev": "npx eslint . && dotenv -e .env.development -- jest --testTimeout=5000 --detectOpenHandles",
     "migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
     "migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
+    "dbpush": "dotenv -e .env.development -- npx prisma db push",
     "build:dev": "npm run migrate:dev && npx prisma generate",
     "build:prod": "npm run migrate:prod && npx prisma generate",
-    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d",
-    "exitdocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down",
-    "cleandocker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v",
-    "sql:dev": "docker compose -f docker-compose.sql-dev.yml up --build -d",
-    "exitsql:dev": "docker compose -f docker-compose.sql-dev.yml down",
-    "cleansql:dev": "docker compose -f docker-compose.sql-dev.yml down -v",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up --build -d",
+    "docker:test": "docker-compose -f docker-compose.test.yml build && docker-compose -f docker-compose.test.yml run test",
+    "exitdocker:dev": "docker-compose -f docker-compose.dev.yml down",
+    "cleandocker:dev": "docker-compose -f docker-compose.dev.yml down -v",
+    "sql:dev": "docker compose -f docker-compose.dev.yml up --build db -d",
+    "exitsql:dev": "docker compose -f docker-compose.dev.yml down",
+    "cleansql:dev": "docker compose -f docker-compose.dev.yml down -v",
     "prismastudio:dev": "dotenv -e .env.development -- npx prisma studio"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.26.9",
     "@eslint/js": "^9.20.0",
     "eslint": "^9.20.1",
     "globals": "^15.15.0",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.9",
     "prisma": "^6.2.1"
   }

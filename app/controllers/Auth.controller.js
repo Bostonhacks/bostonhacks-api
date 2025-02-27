@@ -115,13 +115,14 @@ export const googleAuth = async(req, res) => {
         const scopes = GOOGLE_OAUTH_SCOPES.join(" ");
         const GOOGLE_OAUTH_CONSENT_SCREEN_URL = `${process.env.GOOGLE_OAUTH_URL}?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_CALLBACK_URL}&access_type=offline&response_type=code&state=${state}&scope=${scopes}`;
 
+       
         res.cookie("oauthstate", oauthstate, {
+            domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: "lax", // needed for redirect
             maxAge: 5 * 60 * 1000 // 5 minutes
         });
-       
 
         
         res.redirect(GOOGLE_OAUTH_CONSENT_SCREEN_URL);
@@ -149,17 +150,42 @@ export const googleCallback = async(req, res) => {
             // normal auth flow
 
             const { code } = req.query;
-            // const { state } = req.query;
+            const { state } = req.query;
 
 
-        
+            // check state to prevent CSRF
+            const oauthstateCookie = req.cookies.oauthstate;
+            logger.info(oauthstateCookie)
+            if (!oauthstateCookie) {
+                return res.status(400).json({
+                    message: "Missing OAuth State"
+                })
+            }
 
             // check if state matches
-            // if (!state || state !== storedState.state) {
-            //     return res.status(400).json({
-            //         message: "Invalid state"
-            //     });
-            // }
+            try {
+                const decodedState = jwt.verify(oauthstateCookie, process.env.JWT_SECRET)
+                if (!state || state !== decodedState.state) {
+                    return res.status(409).json({
+                        message: "Invalid token state"
+                    })
+                }
+
+                res.clearCookie("oauthstate", {
+                    domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: "lax", // needed for redirect
+                    maxAge: 5 * 60 * 1000 // 5 minutes
+                });
+            } catch(err) {
+                logger.error(err)
+                return res.status(400).json({
+                    message: "Missing or expired oauth state",
+                });
+            }
+
+            // if state matches, then continue
         
             // exchange code for access token
             const response = await fetch(process.env.GOOGLE_ACCESS_TOKEN_URL, {
@@ -223,6 +249,7 @@ export const googleCallback = async(req, res) => {
 
         res.cookie('access_token', accessToken, {
             httpOnly: true,
+            domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
@@ -239,6 +266,28 @@ export const googleCallback = async(req, res) => {
     }
     
 };
+
+export const logout = async(req, res) => {
+    try {
+        logger.info(`User ${req.user.id} logged out`)
+        res.clearCookie("access_token", {
+            // settings must be the same as the set cookie on login
+            httpOnly: true,
+            domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        }).status(200).json({
+            message: "User logged out successfully",
+        });
+    } catch(err) {
+        logger.error(`Error logging out user: ${err}`);
+        res.status(500).json({
+            message: "Error logging out user"
+        })
+    }
+ 
+}
 
 export const createEmailUser = async(req, res) => {
     try {

@@ -1,1 +1,1 @@
-// schemas defined in root path swaggerconfig.js
+// schemas defined in app/config/swaggerconfig.js

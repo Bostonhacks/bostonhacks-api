@@ -1,0 +1,26 @@
+services:
+  test-db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=bostonhacksapitest
+      - POSTGRES_PASSWORD=bostonhacksapitest
+    expose:
+      - 5432
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # No volume needed for test database
+
+  test-app:
+    build:
+      context: .
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgresql://postgres:bostonhacksapitest@test-db:5432/bostonhacksapitest
+    depends_on:
+      test-db:
+        condition: service_healthy
+    command: npm test:test
+    # No volume needed for test app
