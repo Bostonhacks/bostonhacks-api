@@ -1,4 +1,0 @@
-services:
-  server:
-    env_file:
-      - fileName: .env.production

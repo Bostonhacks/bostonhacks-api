@@ -7,7 +7,7 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-import swaggerDefinition from "./swaggerconfig.js";
+import swaggerDefinition from "./app/config/swaggerconfig.js";
 
 // database connection
 import prisma from "./app/database/Prisma.js";
@@ -62,6 +62,7 @@ app.get("/", (req, res) => {
   res.redirect("/docs");
 });
 
+export default app
 
 
 const startServer = async () => {
@@ -92,3 +93,4 @@ const startServer = async () => {
 };
 
 startServer();
+

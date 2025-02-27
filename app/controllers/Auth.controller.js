@@ -223,7 +223,7 @@ export const googleCallback = async(req, res) => {
 
         res.cookie('access_token', accessToken, {
             httpOnly: true,
-            domain: "bostonhacks.org",
+            domain: process.env.NODE_ENV === "production"? "bostonhacks.org" : undefined,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
