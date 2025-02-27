@@ -22,7 +22,6 @@
     "dev": "dotenv -e .env.development -- nodemon server.js",
     "prod": "dotenv -e .env.production -- node server.js",
     "test:dev": "npx eslint . && dotenv -e .env.development -- jest --testTimeout=5000 --detectOpenHandles",
-    "test:test": "jest --testTimeout=5000 --detectOpenHandles",
     "migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
     "migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
     "dbpush": "dotenv -e .env.development -- npx prisma db push",
@@ -38,6 +37,7 @@
     "prismastudio:dev": "dotenv -e .env.development -- npx prisma studio"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.26.9",
     "@eslint/js": "^9.20.0",
     "eslint": "^9.20.1",
     "globals": "^15.15.0",

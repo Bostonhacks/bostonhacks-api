@@ -10,6 +10,7 @@ Every time you update `prisma/schema.prisma`:
 
 Please do not add any sensitive keys/info to the public repository. All private keys/values should be placed in an `.env.*` or added to `.gitignore`.
 
+`app.js` holds the express app but `server.js` is the start routine. This is so tests can be run by supertest
 
 # To Run
 You must have NodeJS and Docker Desktop installed.
@@ -23,7 +24,7 @@ There are two ways to run this API
    3. Run `npm run build:dev` to run SQL migrations and build the Prisma Client
    4. `npm run dev` to run the server locally
       - Must have `.env.development` file 
-   5. `npm run test:dev` to run local tests
+   5. `npm run test:dev` to run local tests (must close dev server first)
    6. Run `npm run exitsql:dev` to exit Docker SQL container. Your data will persist even after closing the container.
       1. Optionally run `npm run cleansql:dev` to exit the SQL container and delete persistent storage **warning: this deletes all your persistent db data stored locally**.
 

@@ -1,69 +1,7 @@
-import express from "express";
-import TestRoutes from "./app/routes/Test.routes.js";
-import path from "path";
-import dotenv from "dotenv";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import session from "express-session";
-import swaggerJsdoc from "swagger-jsdoc";
-import swaggerUi from "swagger-ui-express";
-import swaggerDefinition from "./app/config/swaggerconfig.js";
-
-// database connection
+import app from "./app.js"
 import prisma from "./app/database/Prisma.js";
 
-// routers
-import UserRoutes from "./app/routes/User.routes.js";
-import AuthRoutes from "./app/routes/Auth.routes.js";
-import ApplicationRoutes from "./app/routes/Application.routes.js";
-
-// set correct config file
-if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = 'development';
-}
-dotenv.config({ path: path.join(path.resolve(), `.env.${process.env.NODE_ENV}`)}); 
-
-// express app
-const app = express();
-
-// middlewares
-app.use(express.json());
-app.use(cors());
-app.use(cookieParser());
-app.use(session({
-  secret: process.env.JWT_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // set to true if using https
-    httpOnly: true,
-    sameSite: 'strict',
-    maxAge: 1000 * 60 * 5 // 5 minute
-  }
-}))
-
-
-/* Routes */
-app.use("/test", TestRoutes);
-app.use("/user", UserRoutes);
-app.use("/auth", AuthRoutes);
-app.use("/application", ApplicationRoutes)
-
-// expose public folder
-// app.use(express.static(path.join(path.resolve(), 'public')));
-
-// expose swagger docs
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc({
-  swaggerDefinition,
-  apis: ["./app/routes/*.js"],
-})))
-
-app.get("/", (req, res) => {
-  res.redirect("/docs");
-});
-
-export default app
-
+// separate start routine. To find express app, go to app.js
 
 const startServer = async () => {
   try {

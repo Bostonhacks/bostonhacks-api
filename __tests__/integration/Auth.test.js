@@ -1,6 +1,6 @@
 import request from 'supertest';
-import authRouter from "../../app/routes/Auth.routes.js"
-
+// import authRouter from "../../app/routes/Auth.routes.js"
+import app from "../../app.js"
 import jest from "jest"
 
 
@@ -11,22 +11,18 @@ import jest from "jest"
 //   createEmailUser: jest.fn(),
 //   googleCallback: jest.fn()
 // }));
+describe("GET /", () => {
 
-describe("Starter test", () => {
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
-    describe("GET /", () => {
-        it("Should give you message at root page", async() => {
-            const response = (await request(app).get("/")).send();
-        })
+    it("Should redirect", async() => {
+        const response = await request(app).get("/");
 
-        expect(response.status).toBe(200);
-        expect(response.body).anything()
-
+        expect(response.status).toBe(302);
     })
+
+
+
 });
 
 // describe('Auth Routes Integration Tests', () => {

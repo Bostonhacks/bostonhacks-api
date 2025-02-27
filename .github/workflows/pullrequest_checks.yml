@@ -25,13 +25,15 @@ jobs:
       
     - name: Check code style
       run: npx eslint .
-      
-    # - name: Run tests
-    #   run: npm test
-    #   env:
-    #     JWT_SECRET: ${{ secrets.JWT_SECRET }}
-    #     DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-    #     GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-    #     GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-    #     # set the rest later
+    
+    # spin up docker image
 
+    # run docker compose on test compose file
+    # env:
+    #     JWT_SECRET: ${{ secrets.JWT_SECRET }}
+    #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    #     GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+    #     GOOGLE_CLIENT_SECRET: ${{ vars.GOOGLE_CLIENT_SECRET }}
+    #     # set the rest later
+      # compose will run tests
+    
