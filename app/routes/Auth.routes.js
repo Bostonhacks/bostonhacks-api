@@ -1,5 +1,6 @@
 import express from "express"
-import { googleAuth, createEmailUser, googleCallback } from "../controllers/Auth.controller.js";
+import { googleAuth, createEmailUser, googleCallback, logout } from "../controllers/Auth.controller.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
@@ -58,6 +59,8 @@ router.get("/google/login", googleAuth);
  *          
  */
 router.get("/google/callback", googleCallback);
+
+router.post("/logout", verifyToken, logout)
 
 // google login/signup
 // router.post("/google", googleAuth);

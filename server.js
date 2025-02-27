@@ -1,5 +1,6 @@
 import app from "./app.js"
 import prisma from "./app/database/Prisma.js";
+import logger from "./app/utils/logger.js";
 
 // separate start routine. To find express app, go to app.js
 
@@ -10,21 +11,32 @@ const startServer = async () => {
       throw new Error('Environment file not fully configured');
     }
 
+    // check DB connection
+    try {
+      await prisma.$connect();
+      logger.info('Successfully connected to database');
+    } catch (error) {
+      throw new Error(`Failed to connect to database: ${error.message}`);
+    }
+
     // start server
     const server = app.listen(process.env.PORT, () => {
-      console.log(`Server is running on port ${process.env.PORT} with ${process.env.NODE_ENV} environment`);
+      logger.info(`Server is running on port ${process.env.PORT} with ${process.env.NODE_ENV} environment`);
     });
+
+
+
 
     // Graceful shutdown
     process.on('SIGTERM', () => {
-      console.log('SIGTERM signal received: closing HTTP server')
+      logger.warn('SIGTERM signal received: closing HTTP server')
       server.close(async () => {
         await prisma.$disconnect();
         process.exit(0);
       });
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server:', error);
     await prisma.$disconnect();
     process.exit(1);
   }

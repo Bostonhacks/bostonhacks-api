@@ -155,7 +155,6 @@ export const googleCallback = async(req, res) => {
 
             // check state to prevent CSRF
             const oauthstateCookie = req.cookies.oauthstate;
-            logger.info(oauthstateCookie)
             if (!oauthstateCookie) {
                 return res.status(400).json({
                     message: "Missing OAuth State"
@@ -176,7 +175,7 @@ export const googleCallback = async(req, res) => {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: "lax", // needed for redirect
-                    maxAge: 5 * 60 * 1000 // 5 minutes
+                    // maxAge: 5 * 60 * 1000 // 5 minutes
                 });
             } catch(err) {
                 logger.error(err)
@@ -215,7 +214,9 @@ export const googleCallback = async(req, res) => {
                 headers: { Authorization: `Bearer ${accessToken.access_token}` }
             }).then(res => res.json());
 
-            if (!userInfo.email_verified) {
+            console.log(userInfo)
+
+            if (!userInfo.email_verified && !userInfo.verified_email) {
                 return res.status(401).json({ message: 'Email not verified' });
             }
         
@@ -276,7 +277,7 @@ export const logout = async(req, res) => {
             domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            // maxAge: 24 * 60 * 60 * 1000 // 24 hours
         }).status(200).json({
             message: "User logged out successfully",
         });

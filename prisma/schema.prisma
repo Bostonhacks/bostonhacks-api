@@ -47,6 +47,11 @@ model Application {
     status          Status   @default(PENDING)
 }
 
+model Project {
+    id              Int     @id @default(autoincrement())
+    
+}
+
 
 enum Role {
     USER
