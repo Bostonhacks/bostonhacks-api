@@ -337,11 +337,11 @@ const swaggerDefinition ={
     },
     "servers": [
         {
-            "url": "http://localhost:8000/api",
+            "url": "http://localhost:8000",
             "description": "Local server"
         },
         {
-            "url": "https://api.example.com/api"
+            "url": "https://api.bostonhacks.org"
         }
     ]
 
