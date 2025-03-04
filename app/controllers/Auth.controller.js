@@ -1,6 +1,7 @@
 // import { auth, OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import prismaInstance from "../database/Prisma.js";
 import logger from "../utils/logger.js";
 
@@ -346,6 +347,7 @@ export const emailLogin = async(req, res) => {
         logger.info(`User with email ${existingUser.email} logged in`);
 
         // Remove password from response
+        // eslint-disable-next-line
         const { password, id, ...userWithoutPassword } = existingUser;
 
         res.cookie('access_token', accessToken, {
@@ -437,6 +439,7 @@ export const createEmailUser = async(req, res) => {
         logger.info(`User with email ${user.email} created`);
 
         // Remove password from response
+        // eslint-disable-next-line
         const { password, id, ...userWithoutPassword } = user;
 
         res.cookie('access_token', accessToken, {
