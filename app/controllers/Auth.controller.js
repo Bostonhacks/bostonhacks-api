@@ -289,57 +289,170 @@ export const logout = async(req, res) => {
  
 }
 
-export const createEmailUser = async(req, res) => {
+export const emailLogin = async(req, res) => {
     try {
-        // check if user exists already
+        // Input validation
+        if (!req.body.email || !req.body.password) {
+            return res.status(400).json({
+                message: "Email and password are required"
+            });
+        }
+
+        // Find user by email
         const existingUser = await prisma.user.findUnique({
             where: {
                 email: req.body.email
             }
         });
+
+        // Check if user exists
+        if (!existingUser) {
+            return res.status(401).json({
+                message: "Invalid email or password"
+            });
+        }
+
+        // Check if user is using email auth method
+        if (existingUser.authProvider !== 'EMAIL') {
+            return res.status(400).json({
+                message: `This account uses ${existingUser.authProvider} authentication. Please login with that method.`
+            });
+        }
+
+        // Verify password
+        if (!existingUser.password) {
+            return res.status(401).json({
+                message: "Account requires password reset"
+            });
+        }
+
+        const validPassword = await bcrypt.compare(req.body.password, existingUser.password);
+        if (!validPassword) {
+            return res.status(401).json({
+                message: "Invalid email or password"
+            });
+        }
+
+        // Generate JWT
+        const accessToken = jwt.sign(
+            { 
+                id: existingUser.id,
+                email: existingUser.email
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        logger.info(`User with email ${existingUser.email} logged in`);
+
+        // Remove password from response
+        const { password, id, ...userWithoutPassword } = existingUser;
+
+        res.cookie('access_token', accessToken, {
+            httpOnly: true,
+            domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        }).status(200).json({
+            message: "User logged in successfully",
+            user: userWithoutPassword
+        });
+    } catch(err) {
+        logger.error(`Login error: ${err.message}`);
+        res.status(500).json({
+            message: "Internal server error during login"
+        });
+    }
+};
+
+export const createEmailUser = async(req, res) => {
+    try {
+        if (process.env.NODE_ENV === "production") {
+            return res.status(501).json({
+                message: "Not implemented"
+            })
+        }
+        // Input validation
+        // change to use validate schema middleware
+        if (!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName) {
+            return res.status(400).json({
+                message: "Email, password, firstName, and lastName are required"
+            });
+        }
+
+        // Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(req.body.email)) {
+            return res.status(400).json({
+                message: "Invalid email format"
+            });
+        }
+
+        // Password strength validation
+        if (req.body.password.length < 8) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters long"
+            });
+        }
+
+        // Check if user exists already
+        const existingUser = await prisma.user.findUnique({
+            where: {
+                email: req.body.email
+            }
+        });
+        
         if (existingUser) {
             return res.status(400).json({
                 message: "User already exists"
             });
         }
 
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-        // if authprovider is email (or none specified), require password
-        if (req.body.authProvider === "EMAIL") {
-          
-            // if (!req.body.password) {
-            //     return res.status(400).json({
-            //         message: "password field is required"
-            //     });
-            // }
+        // Create user
+        const user = await prisma.user.create({
+            data: {
+                email: req.body.email,
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                password: hashedPassword,
+                authProvider: 'EMAIL'
+            }
+        });
 
-            // add input validation
+        // Generate JWT
+        const accessToken = jwt.sign(
+            { 
+                id: user.id,
+                email: user.email
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
 
-            // const user = await prisma.user.create({
-            //     data: {
-            //         email: req.body.email,
-            //         firstName: req.body.firstName,
-            //         lastName: req.body.lastName,
-            //         // password: req.body.password, // hash this later
-            //     }
-            // });
+        logger.info(`User with email ${user.email} created`);
 
-            // res.status(201).json({
-            //     message: "User created successfully",
-            //     user: user
-            // });
-    
+        // Remove password from response
+        const { password, id, ...userWithoutPassword } = user;
 
-            // not yet implemented so return that
-
-            res.status(501).json({
-                message: "Not yet implemented"
-            });
-        }
-
-    
+        res.cookie('access_token', accessToken, {
+            httpOnly: true,
+            domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        }).status(201).json({
+            message: "User created successfully",
+            user: userWithoutPassword
+        });
     } catch(err) {
-        res.status(500).json(err);
+        logger.error(`User creation error: ${err.message}`);
+        res.status(500).json({
+            message: "Internal server error during user creation"
+        });
     }
-
-}
+};

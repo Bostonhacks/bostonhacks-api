@@ -1,15 +1,13 @@
 import express from "express"
-import { googleAuth, createEmailUser, googleCallback } from "../controllers/Auth.controller.js";
+import { googleAuth, createEmailUser, googleCallback, emailLogin } from "../controllers/Auth.controller.js";
 
 const router = express.Router();
 
-// should ideally be email or oauth login using JWT cookies set as HTTPOnly and SameSite
-router.get("/login", ()=>{});
 
 // either google oauth or email 
 // check db if using email, if so pass is required,
 // if google oauth, no password required but must set
-router.post("/signup/email", createEmailUser);
+router.post("/email/signup", createEmailUser);
 
 /**
  * @openapi
@@ -61,5 +59,8 @@ router.get("/google/callback", googleCallback);
 
 // google login/signup
 // router.post("/google", googleAuth);
+
+
+router.post("/email/login", emailLogin)
 
 export default router;
