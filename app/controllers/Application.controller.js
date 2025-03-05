@@ -14,12 +14,12 @@ export const getApplication = async(req, res) => {
 
         const application = await prisma.application.findUnique({
             where: {
-                id: parseInt(req.params.id),
+                id: req.params.id,
             }
         });
 
         // verify logged in user matches requested user
-        if (req.user.id !== parseInt(application?.userId)) {
+        if (req.user.id !== application?.userId) {
             logger.warn(`Attempted unauthorized access to application with id ${req.params.id}`);
             return res.status(403).json({
                 message: "You are not authorized to access this resource"
@@ -48,7 +48,7 @@ export const getUserApplications = async(req, res) => {
         }
 
         // verify logged in user matches requested user
-        if (req.user.id !== parseInt(req.query.user_id)) {
+        if (req.user.id !== req.query.user_id) {
             logger.warn(`Attempted unauthorized access to application with id ${req.query.user_id}`);
             logger.debug(`User id: ${req.user.id} | Application id: ${req.params.id}`);
 
@@ -59,7 +59,7 @@ export const getUserApplications = async(req, res) => {
         
         const applications = await prisma.application.findMany({
             where: {
-                userId: parseInt(req.query.user_id),
+                userId: req.query.user_id,
             }
         });
         logger.info(`Applications for user with id ${req.query.user_id} retrieved`)
@@ -86,7 +86,7 @@ export const createApplication = async (req, res) => {
                 message: "userId field is required"
             });
         }
-        else if (req.user.id !== parseInt(userId)) {
+        else if (req.user.id !== userId) {
             logger.warn(`Attempted unauthorized access to create application for user with id ${userId}`);
             return res.status(403).json({
                 message: "You are not authorized to access this resource"
@@ -103,7 +103,7 @@ export const createApplication = async (req, res) => {
         // check if user already has application for current year
         const existingApplication = await prisma.application.findFirst({
             where: {
-                userId: parseInt(userId),
+                userId: userId,
                 applicationYear: req.body.applicationYear
             }
         });
@@ -116,7 +116,7 @@ export const createApplication = async (req, res) => {
         // uses middleware for input validation
         const application = await prisma.application.create({
             data: {
-                userId: parseInt(req.user.id),
+                userId: req.user.id,
                 gender: req.body.gender,
                 pronous: req.body.pronous,
                 age: parseInt(req.body.age),

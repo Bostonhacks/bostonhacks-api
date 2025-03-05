@@ -347,8 +347,7 @@ export const emailLogin = async(req, res) => {
         logger.info(`User with email ${existingUser.email} logged in`);
 
         // Remove password from response
-        // eslint-disable-next-line
-        const { password, id, ...userWithoutPassword } = existingUser;
+        const { password, ...userWithoutPassword } = existingUser;
 
         res.cookie('access_token', accessToken, {
             httpOnly: true,
@@ -439,8 +438,7 @@ export const createEmailUser = async(req, res) => {
         logger.info(`User with email ${user.email} created`);
 
         // Remove password from response
-        // eslint-disable-next-line
-        const { password, id, ...userWithoutPassword } = user;
+        const { password, ...userWithoutPassword } = user;
 
         res.cookie('access_token', accessToken, {
             httpOnly: true,

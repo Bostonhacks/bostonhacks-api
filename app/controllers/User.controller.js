@@ -13,7 +13,7 @@ export const getUser = async(req, res) => {
         }
 
         // verify logged in user matches requested user
-        if ((req.query.id && req.user.id !== parseInt(req.query.id)) || (req.query.email && req.user.email !== req.query.email)) {
+        if ((req.query.id && req.user.id !== req.query.id) || (req.query.email && req.user.email !== req.query.email)) {
             logger.warn(`Attempted unauthorized access to user with id ${req.query.id} or email ${req.query.email}`);
             return res.status(403).json({
                 message: "You are not authorized to access this resource"
@@ -23,7 +23,7 @@ export const getUser = async(req, res) => {
         if (req.query.id) {
             const user = await prisma.user.findUnique({
                 where: {
-                    id: parseInt(req.query.id),
+                    id: req.query.id,
                 },
                 include: {
                     applications: true
