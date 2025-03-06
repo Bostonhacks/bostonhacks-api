@@ -43,7 +43,7 @@ export const getUserApplications = async(req, res) => {
     try {
         if (!req.query.user_id) {
             return res.status(400).json({
-                message: "id field is required"
+                message: "user_id field is required"
             });
         }
 
@@ -156,4 +156,51 @@ export const createApplication = async (req, res) => {
             error: err
         });
     }
-}
+};
+
+export const updateApplication = async(req, res) => {
+    // dont allow update to application year by user. only admins
+    // zod will handle the rest of the validation
+
+    try {
+        if (!req.params.id) {
+            return res.status(400).json({
+                message: "id parameter is required"
+            });
+        }
+
+        const application = await prisma.application.findUnique({
+            where: {
+                id: req.params.id,
+            }
+        });
+
+        // verify logged in user matches requested user
+        if (req.user.id !== application?.userId) {
+            logger.warn(`Attempted unauthorized access to application with id ${req.params.id}`);
+            return res.status(403).json({
+                message: "You are not authorized to access this resource"
+            });
+        }
+
+        const updatedApplication = await prisma.application.update({
+            where: {
+                id: req.params.id
+            },
+            data: req.body
+        });
+
+        logger.info(`Application with id ${req.params.id} updated`)
+        res.status(200).json({
+            message: "Application updated successfully",
+            application: updatedApplication
+        });
+    }
+    catch (err) {
+        logger.error(err);
+        return res.status(500).json({
+            message: "Something went wrong",
+            error: err
+        });
+    }
+};

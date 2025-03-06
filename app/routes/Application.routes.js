@@ -1,7 +1,7 @@
-import { createApplication, getApplication, getUserApplications } from "../controllers/Application.controller.js"; 
+import { createApplication, getApplication, getUserApplications, updateApplication } from "../controllers/Application.controller.js"; 
 import express from "express";
 import { verifyToken } from "../middleware/verifyToken.js";
-import { validateApplication } from "../middleware/validateSchema.js";
+// import { validateApplication } from "../middleware/validateSchema.js";
 
 const router = express.Router();
 
@@ -115,6 +115,8 @@ router.get("/user", verifyToken, getUserApplications);
  *              $ref: "#/components/responses/500internalservererror"
  */
 router.get("/:id", verifyToken, getApplication);
+
+router.put("/:id", verifyToken, updateApplication);
 
 
 

@@ -9,7 +9,7 @@ const AuthProviderSchema = z.enum(['EMAIL', 'FACEBOOK', 'GOOGLE']);
 
 // User schema
 const userSchema = z.object({
-    id: z.string().uuid().optional(), // Optional for creation
+    id: z.string().uuid().optional().readonly(), // Optional for creation
     email: z.string().email(),
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
@@ -21,7 +21,7 @@ const userSchema = z.object({
 
 // Application schema with detailed validation
 const applicationSchema = z.object({
-    id: z.string().uuid().optional(),
+    id: z.string().uuid().optional().readonly(),
     gender: z.string().min(1, "Gender is required"),
     pronous: z.string().min(1, "Pronouns are required"),
     age: z.number().int().positive("Age must be a positive number"),
@@ -42,13 +42,13 @@ const applicationSchema = z.object({
     portfolio: z.string().url("Portfolio URL must be valid"),
     whyBostonhacks: z.string().min(10, "Please provide a more detailed response"),
     applicationYear: z.number().int().min(2023).max(new Date().getFullYear() + 1),
-    userId: z.string().uuid("Must be a valid user ID"),
-    status: StatusSchema.default('PENDING'),
+    userId: z.string().uuid("Must be a valid user ID").readonly(),
+    status: StatusSchema.default('PENDING').readonly(),
 });
 
 // Project schema
 const projectSchema = z.object({
-    id: z.string().uuid().optional(),
+    id: z.string().uuid().optional().readonly(),
     name: z.string().min(1, "Project name is required"),
     description: z.string().min(10, "Please provide a more detailed description"),
     repositoryUrl: z.string().url("Repository URL must be valid"),
@@ -63,10 +63,36 @@ const projectSchema = z.object({
     placement: z.number().int().positive().nullable().optional(),
 });
 
+// create schemas
+const userCreateSchema = userSchema.omit({
+    id: true,
+    role: true,
+    authProvider: true
+});
+const applicationCreateSchema = applicationSchema.omit({
+    id: true,
+    status: true
+});
+const projectCreateSchema = projectSchema.omit({
+    id: true,
+});
+
 // Update schemas (partial versions for updates)
-const userUpdateSchema = userSchema.partial();
-const applicationUpdateSchema = applicationSchema.partial();
-const projectUpdateSchema = projectSchema.partial();
+const userUpdateSchema = userSchema.omit({
+    email: true,
+    password: true,
+    authProvider: true,
+    id: true
+}).partial();
+const applicationUpdateSchema = applicationSchema.omit({
+    userId: true,
+    applicationYear: true,
+    id: true
+}).partial();
+const projectUpdateSchema = projectSchema.omit({
+    id: true,
+    year: true
+}).partial();
 
 
 // Create Prisma client with extensions. This will use zod schemas to validate data before executing queries
@@ -77,22 +103,22 @@ const prismaInstance = new PrismaClient().$extends({
       async create({ args, query }) {
 
         // Validate the data against the schema
-        userSchema.parse(args.data);
+        args.data = userCreateSchema.parse(args.data);
         return query(args);
 
       },
       async update({ args, query }) {
 
           // Validate the update data against the partial schema
-          userUpdateSchema.parse(args.data);
+          args.data = userUpdateSchema.parse(args.data);
           return query(args);
 
       },
       async upsert({ args, query }) {
 
           // Validate both create and update data
-          userSchema.parse(args.create);
-          userUpdateSchema.parse(args.update);
+          args.data = userCreateSchema.parse(args.create);
+          args.data = userUpdateSchema.parse(args.update);
           return query(args);
 
       },
@@ -101,22 +127,22 @@ const prismaInstance = new PrismaClient().$extends({
       async create({ args, query }) {
 
           // Validate the data against the schema
-          applicationSchema.parse(args.data);
+          args.data = applicationCreateSchema.parse(args.data);
           return query(args);
 
       },
       async update({ args, query }) {
 
           // Validate the update data against the partial schema
-          applicationUpdateSchema.parse(args.data);
+          args.data = applicationUpdateSchema.parse(args.data);
           return query(args);
 
       },
       async upsert({ args, query }) {
 
           // Validate both create and update data
-          applicationSchema.parse(args.create);
-          applicationUpdateSchema.parse(args.update);
+          args.data = applicationCreateSchema.parse(args.create);
+          args.data = applicationUpdateSchema.parse(args.update);
           return query(args);
 
       },
@@ -125,22 +151,22 @@ const prismaInstance = new PrismaClient().$extends({
       async create({ args, query }) {
 
           // Validate the data against the schema
-          projectSchema.parse(args.data);
+          args.data = projectCreateSchema.parse(args.data);
           return query(args);
 
       },
       async update({ args, query }) {
 
           // Validate the update data against the partial schema
-          projectUpdateSchema.parse(args.data);
+          args.data = projectUpdateSchema.parse(args.data);
           return query(args);
  
       },
       async upsert({ args, query }) {
 
           // Validate both create and update data
-          projectSchema.parse(args.create);
-          projectUpdateSchema.parse(args.update);
+          args.data = projectCreateSchema.parse(args.create);
+          args.data = projectUpdateSchema.parse(args.update);
           return query(args);
 
       },

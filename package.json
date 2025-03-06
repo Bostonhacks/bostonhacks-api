@@ -32,7 +32,7 @@
     "docker:test": "docker-compose -f docker-compose.test.yml build && docker-compose -f docker-compose.test.yml run test",
     "exitdocker:dev": "docker-compose -f docker-compose.dev.yml down",
     "cleandocker:dev": "docker-compose -f docker-compose.dev.yml down -v",
-    "sql:dev": "docker compose -f docker-compose.dev.yml up --build db -d",
+    "sql:dev": "docker compose -f docker-compose.dev.yml up --build db -d && npm run dbpush",
     "exitsql:dev": "docker compose -f docker-compose.dev.yml down",
     "cleansql:dev": "docker compose -f docker-compose.dev.yml down -v",
     "prismastudio:dev": "dotenv -e .env.development -- npx prisma studio"
