@@ -2,9 +2,10 @@ const swaggerDefinition ={
     "openapi": "3.0.0",
     "info": {
         "title": "BostonHacks API Documentation",
-        "description": "BostonHacks public API used for main website. Many endpoints require authorization via JWT. Obtaining this token is outlined in the Auth section.",
+        "description": "BostonHacks public API used for main website. Many endpoints require token authorization. Obtaining this token is outlined in the Auth section.",
         "version": "1.0.0"
     },
+    "failOnErrors": true,
     "components": {
         "schemas": {
             "User": {
@@ -17,10 +18,9 @@ const swaggerDefinition ={
                 ],
                 "properties": {
                     "id": {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User's unique ID",
                         "readOnly": true,
-                        "example": 3,
                         "unique": true
                     },
                     "email": {
@@ -237,6 +237,27 @@ const swaggerDefinition ={
                     "type": "object"
                 }
                 }
+            },
+            "ValidationError": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Validation error"
+                    },
+                    "issues": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                            }
+                        }
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "ZodValidationError"
+                    }
+                }
             }
         },
         "parameters": {
@@ -337,11 +358,12 @@ const swaggerDefinition ={
     },
     "servers": [
         {
-            "url": "http://localhost:8000/api",
+            "url": "http://localhost:8000/",
             "description": "Local server"
         },
         {
-            "url": "https://api.example.com/api"
+            "url": "https://api.bostonhacks.org",
+            "description": "Main API"
         }
     ]
 

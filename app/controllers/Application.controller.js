@@ -113,32 +113,34 @@ export const createApplication = async (req, res) => {
             });
         }
 
-        // uses middleware for input validation
+        const applicationData = {
+            userId: req.user.id,
+            gender: req.body.gender,
+            pronous: req.body.pronous,
+            age: req.body.age,
+            ethnicity: req.body.ethnicity,
+            gradYear: req.body.gradYear,
+            phoneNumber: req.body.phoneNumber,
+            school: req.body.school,
+            city: req.body.city,
+            state: req.body.state,
+            country: req.body.country,
+            educationLevel: req.body.educationLevel,
+            major: req.body.major,
+            diet: req.body.diet,
+            shirtSize: req.body.shirtSize,
+            sleep: Boolean(req.body.sleep),
+            github: req.body.github,
+            linkedin: req.body.linkedin,
+            portfolio: req.body.portfolio,
+            whyBostonhacks: req.body.whyBostonhacks,
+            applicationYear: req.body.applicationYear
+        };
+
+        // uses zod for input validation
         const application = await prisma.application.create({
-            data: {
-                userId: req.user.id,
-                gender: req.body.gender,
-                pronous: req.body.pronous,
-                age: parseInt(req.body.age),
-                ethnicity: req.body.ethnicity,
-                gradYear: parseInt(req.body.gradYear),
-                phoneNumber: req.body.phoneNumber,
-                school: req.body.school,
-                city: req.body.city,
-                state: req.body.state,
-                country: req.body.country,
-                educationLevel: req.body.educationLevel,
-                major: req.body.major,
-                diet: req.body.diet,
-                shirtSize: req.body.shirtSize,
-                sleep: Boolean(req.body.sleep),
-                github: req.body.github,
-                linkedin: req.body.linkedin,
-                portfolio: req.body.portfolio,
-                whyBostonhacks: req.body.whyBostonhacks,
-                applicationYear: req.body.applicationYear
-            }
-            });
+            data: applicationData
+        });
 
         logger.info(`Application with id ${application.id} created by user with id ${req.user.id}`)
 
@@ -147,7 +149,8 @@ export const createApplication = async (req, res) => {
             application: application
         });
     } catch (err) {
-        logger.error(err);
+        logger.error(`createApplication(): ${err}`);
+
         return res.status(500).json({
             message: "Something went wrong",
             error: err

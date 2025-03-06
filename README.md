@@ -7,6 +7,7 @@ Follow this file structure [here](https://dev.to/mr_ali3n/folder-structure-for-n
 Every time you update `prisma/schema.prisma`:
 - If you want to test changes but not add to migration history, use `npm run dbpush`.
   - This runs `npx prisma db push` which is only used for prototyping. When changes are final, `npx prisma migrate dev` (run by `npm run build:dev`) should be run. This adds them to the migration history as a permanent snapshot.
+- Update the Zod schemas within `app/database/Prisma.js` to add validation for the changes.
 
 Please do not add any sensitive keys/info to the public repository. All private keys/values should be placed in an `.env.*` or added to `.gitignore`.
 
@@ -59,6 +60,9 @@ Linting is done with eslint. Please run `npx eslint .` or `npx eslint yourfile.j
 
 ## Testing
 Testing is done with Supertest and Jest. Run tests locally with `npm run test:dev`
+
+## Validation
+Zod is used for input validation
 
 # Deployment
 Deployment can be done either direct code deploy or Dockerized. The Dockerfile along with the root directory is all you need to give a hosting service to start the server. Currently, the server is running as a Docker container in a cloud hosting provider.

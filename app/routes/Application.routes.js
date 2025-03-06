@@ -41,23 +41,14 @@ const router = express.Router();
  *              content:
  *                  application/json:
  *                      schema:
- *                          type: object
- *                          properties:
- *                              message:
- *                                  type: string
- *                                  example: Missing required fields 
- *                              fields:
- *                                  type: array
- *                                  items:
- *                                      type: string
- *                                  example: ["name", "url"]
+ *                          $ref: "#/components/schemas/ValidationError"
  *                                     
  *          403:
  *              $ref: "#/components/responses/403forbidden"
  *          500:
  *              $ref: "#/components/responses/500internalservererror"
  */
-router.post("/", verifyToken, validateApplication, createApplication);
+router.post("/", verifyToken, createApplication);
 
 
 /**
