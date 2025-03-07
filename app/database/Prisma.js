@@ -1,5 +1,18 @@
 import { PrismaClient } from "@prisma/client";
+import { connect } from "http2";
 import { z } from 'zod';
+
+/**
+ * This file contains the Prisma client with Zod schema validation extensions.
+ * Whenever you change the Prisma schema, you should update the Zod schemas here to
+ * match the validations you want. Ensure that certain fields such as id are immutable.
+ * You can do this by adding it to the omit() method in the schema. Not all fields
+ * present in Prisma schema are in the zod schema since those fields are not validated.
+ * 
+ * The Prisma client is extended with a new name 'zodValidation' and the query methods
+ * are overridden to validate the data before executing the query. 
+ */
+
 
 // Define all the Zod schemas for validations before executing queries
 // Enum schemas that match your Prisma enums
@@ -7,9 +20,12 @@ const RoleSchema = z.enum(['USER', 'ADMIN']);
 const StatusSchema = z.enum(['PENDING', 'ACCEPTED', 'WAITLISTED', 'REJECTED']);
 const AuthProviderSchema = z.enum(['EMAIL', 'FACEBOOK', 'GOOGLE']);
 
+/**
+ * ------------ Main base schemas ------------
+ */ 
 // User schema
 const userSchema = z.object({
-    id: z.string().uuid().optional().readonly(), // Optional for creation
+    id: z.string().uuid().optional().readonly(),
     email: z.string().email(),
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
@@ -61,46 +77,107 @@ const projectSchema = z.object({
     isWinner: z.boolean().default(false),
     prizeWon: z.string().nullable().optional(),
     placement: z.number().int().positive().nullable().optional(),
+    members: z.object({
+        connect: z.array(z.object({ id: z.string().uuid() }))
+    }),
 });
 
-// create schemas
+// Judge schema. Connects one-to-one with a user. Judge objects are used for judging but are kept separate from users
+const judgeSchema = z.object({
+    id: z.string().uuid().optional().readonly(),
+    userId: z.string().uuid().optional().readonly(),
+    tracks: z.array(z.string()).nullable().optional(),
+});
+
+// Score schema
+const scoreSchema = z.object({
+    id: z.string().uuid().optional().readonly(),
+    projectId: z.string().uuid().optional().readonly(),
+    judgeId: z.string().uuid().optional().readonly(),
+    scoreData: z.object({}),
+    comments: z.string().nullable().optional(),
+
+});
+
+/**
+ * -------------- Schemas for creation ---------------
+ * Omit fields that should not be set by the client. Some fields can be set by the client,
+ * but will need additional controller validation (i.e. year or members)
+ * Strict() means that unknown fields will throw an error instead of being ignored
+ */
 const userCreateSchema = userSchema.omit({
     id: true,
     role: true,
     authProvider: true
-});
+}).strict();
 const applicationCreateSchema = applicationSchema.omit({
     id: true,
     status: true
-});
+}).strict();
 const projectCreateSchema = projectSchema.omit({
     id: true,
-});
+}).strict();
 
-// Update schemas (partial versions for updates)
+const judgeCreateSchema = judgeSchema.omit({
+    id: true
+}).strict();
+
+const scoreCreateSchema = scoreSchema.omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+}).strict();
+
+
+/**
+ * -------------- Schemas for updating ---------------
+ */
 const userUpdateSchema = userSchema.omit({
     email: true,
     password: true,
     authProvider: true,
     id: true
-}).partial();
+}).partial().strict();
 const applicationUpdateSchema = applicationSchema.omit({
     userId: true,
     applicationYear: true,
-    id: true
-}).partial();
+    id: true,
+    status: true
+}).partial().strict();
 const projectUpdateSchema = projectSchema.omit({
     id: true,
     year: true
-}).partial();
+}).partial().strict();
 
+const judgeUpdateSchema = judgeSchema.omit({
+    id: true,
+    userId: true,
+    accessCode: true,
+    createdAt: true,
+    updatedAt: true,
+    tracks: true
+}).partial().strict();
+
+
+/**
+ * -------------- Schemas for admin ---------------
+ */
 
 // Create Prisma client with extensions. This will use zod schemas to validate data before executing queries
-const prismaInstance = new PrismaClient().$extends({
+const prismaInstance = new PrismaClient({
+    omit: {
+        user: {
+            password: true
+        }
+    }
+}).$extends({
   name: 'zodValidation',
   query: {
     user: {
       async create({ args, query }) {
+        const role = args.userRole || 'USER';
+
+        delete args.userRole;
 
         // Validate the data against the schema
         args.data = userCreateSchema.parse(args.data);
@@ -108,23 +185,32 @@ const prismaInstance = new PrismaClient().$extends({
 
       },
       async update({ args, query }) {
+        const role = args.userRole || 'USER';
 
+        delete args.userRole;
           // Validate the update data against the partial schema
           args.data = userUpdateSchema.parse(args.data);
           return query(args);
 
       },
       async upsert({ args, query }) {
+        const role = args.userRole || 'USER';
+
+        delete args.userRole;
 
           // Validate both create and update data
-          args.data = userCreateSchema.parse(args.create);
-          args.data = userUpdateSchema.parse(args.update);
+          args.create = userCreateSchema.parse(args.create);
+          args.update = userUpdateSchema.parse(args.update);
           return query(args);
 
       },
     },
+
     application: {
       async create({ args, query }) {
+        const role = args.userRole || 'USER';
+
+        delete args.userRole;
 
           // Validate the data against the schema
           args.data = applicationCreateSchema.parse(args.data);
@@ -132,6 +218,9 @@ const prismaInstance = new PrismaClient().$extends({
 
       },
       async update({ args, query }) {
+        const role = args.userRole || 'USER';
+
+        delete args.userRole;
 
           // Validate the update data against the partial schema
           args.data = applicationUpdateSchema.parse(args.data);
@@ -139,38 +228,110 @@ const prismaInstance = new PrismaClient().$extends({
 
       },
       async upsert({ args, query }) {
+        const role = args.userRole || 'USER';
 
+        delete args.userRole;
           // Validate both create and update data
-          args.data = applicationCreateSchema.parse(args.create);
-          args.data = applicationUpdateSchema.parse(args.update);
+          args.create = applicationCreateSchema.parse(args.create);
+          args.update = applicationUpdateSchema.parse(args.update);
           return query(args);
 
       },
     },
     project: {
       async create({ args, query }) {
+        const role = args.userRole || 'USER';
 
+        delete args.userRole;
           // Validate the data against the schema
           args.data = projectCreateSchema.parse(args.data);
           return query(args);
 
       },
       async update({ args, query }) {
+        const role = args.userRole || 'USER';
 
+        delete args.userRole;
           // Validate the update data against the partial schema
           args.data = projectUpdateSchema.parse(args.data);
           return query(args);
  
       },
       async upsert({ args, query }) {
+        const role = args.userRole || 'USER';
 
+        delete args.userRole;
           // Validate both create and update data
-          args.data = projectCreateSchema.parse(args.create);
-          args.data = projectUpdateSchema.parse(args.update);
+          args.create = projectCreateSchema.parse(args.create);
+          args.update = projectUpdateSchema.parse(args.update);
           return query(args);
 
       },
     },
+
+    judge: {
+        async create({ args, query }) {
+            const role = args.userRole || 'USER';
+    
+            delete args.userRole;
+            // Validate the data against the schema
+            args.data = judgeCreateSchema.parse(args.data);
+            return query(args);
+    
+        },
+        async update({ args, query }) {
+            const role = args.userRole || 'USER';
+    
+            delete args.userRole;
+            // Validate the update data against the partial schema
+            args.data = judgeUpdateSchema.parse(args.data);
+            return query(args);
+    
+        },
+        async upsert({ args, query }) {
+            const role = args.userRole || 'USER';
+    
+            delete args.userRole;
+            // Validate both create and update data
+            args.create = judgeCreateSchema.parse(args.create);
+            args.update = judgeUpdateSchema.parse(args.update);
+            return query(args);
+    
+        }
+    },
+
+    score: {
+        async create({ args, query }) {
+            const role = args.userRole || 'USER';
+    
+            delete args.userRole;
+            // Validate the data against the schema
+            args.data = scoreCreateSchema.parse(args.data);
+            return query(args);
+    
+        },
+        async update({ args, query }) {
+            const role = args.userRole || 'USER';
+    
+            delete args.userRole;
+            // Validate the update data against the partial schema
+            args.data = scoreUpdateSchema.parse(args.data);
+            return query(args);
+    
+        },
+        async upsert({ args, query }) {
+            const role = args.userRole || 'USER';
+    
+            delete args.userRole;
+            // Validate both create and update data
+            args.create = scoreCreateSchema.parse(args.create);
+            args.update = scoreUpdateSchema.parse(args.update);
+            return query(args);
+    
+        },
+    }
+
+
   },
 });
 

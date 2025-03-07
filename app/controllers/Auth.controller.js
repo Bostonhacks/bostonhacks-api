@@ -262,7 +262,16 @@ export const googleCallback = async(req, res) => {
     
         // res.status(200).json(userInfo);
     } catch(err) {
-        logger.error(err);
+        logger.error(`${err}`);
+
+        // if zoderror, return the error message
+        if (err.name === "ZodError") {
+            return res.status(400).json({
+                message: "Validation error",
+                error: err.errors
+            });
+        }
+
         res.status(500).json(err);
     }
     

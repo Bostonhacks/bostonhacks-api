@@ -7,7 +7,10 @@ export default [
   {languageOptions: { globals: globals.node }},
   pluginJs.configs.recommended,
   {
-    ignores: ["__tests__/"]
+    ignores: [
+      "__tests__/",
+      "app/database/Prisma.js",
+    ]
   },
   {
     rules: {

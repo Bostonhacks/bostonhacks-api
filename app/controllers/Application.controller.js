@@ -114,27 +114,8 @@ export const createApplication = async (req, res) => {
         }
 
         const applicationData = {
+            ...req.body,
             userId: req.user.id,
-            gender: req.body.gender,
-            pronous: req.body.pronous,
-            age: req.body.age,
-            ethnicity: req.body.ethnicity,
-            gradYear: req.body.gradYear,
-            phoneNumber: req.body.phoneNumber,
-            school: req.body.school,
-            city: req.body.city,
-            state: req.body.state,
-            country: req.body.country,
-            educationLevel: req.body.educationLevel,
-            major: req.body.major,
-            diet: req.body.diet,
-            shirtSize: req.body.shirtSize,
-            sleep: Boolean(req.body.sleep),
-            github: req.body.github,
-            linkedin: req.body.linkedin,
-            portfolio: req.body.portfolio,
-            whyBostonhacks: req.body.whyBostonhacks,
-            applicationYear: req.body.applicationYear
         };
 
         // uses zod for input validation
@@ -149,7 +130,15 @@ export const createApplication = async (req, res) => {
             application: application
         });
     } catch (err) {
-        logger.error(`createApplication(): ${err}`);
+        logger.error(err);
+
+        // if zoderror, return the error message
+        if (err.name === "ZodError") {
+            return res.status(400).json({
+                message: "Validation error",
+                error: err.errors
+            });
+        }
 
         return res.status(500).json({
             message: "Something went wrong",
@@ -183,6 +172,8 @@ export const updateApplication = async(req, res) => {
             });
         }
 
+
+
         const updatedApplication = await prisma.application.update({
             where: {
                 id: req.params.id
@@ -198,6 +189,15 @@ export const updateApplication = async(req, res) => {
     }
     catch (err) {
         logger.error(err);
+
+        // if zoderror, return the error message
+        if (err.name === "ZodError") {
+            return res.status(400).json({
+                message: "Validation error",
+                error: err.errors
+            });
+        }
+
         return res.status(500).json({
             message: "Something went wrong",
             error: err

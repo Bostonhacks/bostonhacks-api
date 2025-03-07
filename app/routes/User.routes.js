@@ -28,9 +28,15 @@ const router = express.Router();
  *            name: email
  *          - in: query
  *            name: id
+ *          - in: query
+ *            name: include
+ *            description: Include projects and applications data
+ *            schema:
+ *              type: boolean
+ *              example: true
  *      responses:
  *          200:
- *              description: User info retrieved successfully
+ *              description: User info retrieved successfully. Includes truncated application and projects data.
  *              content: 
  *                  application/json:
  *                      schema:

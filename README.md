@@ -62,7 +62,7 @@ Linting is done with eslint. Please run `npx eslint .` or `npx eslint yourfile.j
 Testing is done with Supertest and Jest. Run tests locally with `npm run test:dev`
 
 ## Validation
-Zod is used for input validation
+Zod is used for input validation. Some controllers require more control over validation, so Zod does not handle some fields in those cases.
 
 # Deployment
 Deployment can be done either direct code deploy or Dockerized. The Dockerfile along with the root directory is all you need to give a hosting service to start the server. Currently, the server is running as a Docker container in a cloud hosting provider.

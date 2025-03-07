@@ -19,37 +19,31 @@ export const getUser = async(req, res) => {
                 message: "You are not authorized to access this resource"
             });
         }
-        
-        if (req.query.id) {
-            const user = await prisma.user.findUnique({
-                where: {
-                    id: req.query.id,
-                },
-                include: {
-                    applications: true
-                }
-            });
-            logger.info(`User with id ${req.query.id} retrieved`)
-            return res.status(200).json(user);
-        }
-        else if (req.query.email) {
-            const user = await prisma.user.findUnique({
-                where: {
-                    email: req.query.email,
-                },
-                include: {
-                    applications: true  
-                }
-            });
-            logger.info(`User with email ${req.query.email} retrieved`)
-            return res.status(200).json(user);
-        }
 
-
-    
-        res.status(400).json({
-            message: "id or email field is required"
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { id: req.query.id || '' },
+                    { email: req.query.email || '' }
+                ]
+            },
+            include: {
+                projects: req.query.include ? true : false,
+                applications: req.query.include ? true : false,
+            },
+            
         });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+
+        logger.info(`User with id ${req.query.id} retrieved`)
+        return res.status(200).json(user);
+
     
     } catch(err) {
         logger.error(err);
