@@ -138,7 +138,7 @@ const projectCreateSchema = projectSchema.omit({
 const judgeCreateSchema = judgeSchema.omit({
     id: true,
     accessCode: true,
-    user: true
+    // user: true
 }).strict();
 
 const scoreCreateSchema = scoreSchema.omit({
@@ -174,12 +174,12 @@ const projectUpdateSchema = projectSchema.omit({
 
 const judgeUpdateSchema = judgeSchema.omit({
     id: true,
-    userId: true,
+    // userId: true,
     accessCode: true,
     createdAt: true,
     updatedAt: true,
     tracks: true,
-    user: true
+    // user: true
 }).partial().strict();
 
 

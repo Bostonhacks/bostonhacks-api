@@ -150,16 +150,14 @@ export const getProjectsToJudge = async (req, res) => {
         }
 
         // Get projects for the specified tracks (if any)
-        const whereClause = {
-            year: year ? parseInt(year) : new Date().getFullYear()
-        };
-
         if (judge.tracks && judge.tracks.length > 0) {
-            whereClause.track = { in: judge.tracks };
+            // ignore for now
         }
 
         const projects = await prisma.project.findMany({
-            where: whereClause,
+            where: {
+              year: year ? parseInt(year) : new Date().getFullYear()
+            },
             include: {
                 members: {
                     select: {
@@ -369,7 +367,7 @@ export const createJudge = async (req, res) => {
                           firstName: "Judge",
                           lastName: accessCode.toUpperCase(),
                           role: "USER",
-                          password: accessCode, // You might want to hash this
+                          password: accessCode, // keep this as is
                       }
                   }
               },
@@ -417,27 +415,76 @@ export const attachJudgeToUser = async (req, res) => {
             });
         }
 
-
-        // Attach the judge to the user
-        const updatedJudge = await prisma.judge.update({
-            where: { id: judgeId },
-            data: {
-                user: {
-                    connect: { id: userId }
-                }
-            },
+        const currentJudge = await prisma.judge.findUnique({
+            where: { accessCode: access_code },
             include: {
-                user: true
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        password: true
+                    }
+                }
             }
         });
+        if (!currentJudge) {
+            return res.status(404).json({ message: 'Judge not found' });
+        }
 
-        return res.status(200).json({
-            message: "Judge attached to user successfully",
-            judge: updatedJudge
+        // to prevent accidental real account deletion, check if the user is a placeholder
+        let tempUser = null;
+        if (currentJudge?.user?.password === access_code) {
+            tempUser = currentJudge.user;
+        }
+          
+
+
+        // Attach the judge to the user
+        // eslint-disable-next-line no-unused-vars
+        const result = await prisma.$transaction(async (tx) => {
+          // 1. First update the judge to point to the new user
+          const updatedJudge = await tx.judge.update({
+              where: { id: currentJudge.id },
+              data: {
+                  user: {
+                      connect: { id: userId }
+                  }
+              },
+              include: {
+                  user: {
+                      select: {
+                          id: true,
+                          firstName: true,
+                          lastName: true,
+                          email: true
+                      }
+                  }
+              }
+          });
+
+          // 2. Then delete the temporary user now that the judge is no longer referencing it
+          if (tempUser) {
+              await tx.user.delete({
+                  where: { id: tempUser.id }
+              }).catch(error => {
+                  // If deleting fails (e.g., user doesn't exist or is referenced elsewhere),
+                  // just log it but don't fail the transaction
+                  logger.error(`Couldn't delete temp user: ${error.message}`);
+              });
+          }
+
+          return {
+              message: "Judge attached to user successfully",
+              judge: updatedJudge
+          };
         });
+
+        return res.status(200).json(result);
 
     } catch (error) {
         logger.error('attachJudgeToUser(): Error attaching judge to user:', error);
-        return res.status(500).json({ message: 'An error occurred while attaching judge to user', error });
+        return res.status(500).json({ message: 'An error occurred while attaching judge to user. Possible that the current user is already attached to a Judge', error });
     }
 }
