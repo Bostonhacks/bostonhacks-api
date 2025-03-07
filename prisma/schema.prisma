@@ -73,8 +73,8 @@ model Judge {
     id              String    @id @default(uuid())
     user            User      @relation(fields: [userId], references: [id])
     userId          String    @unique
-    accessCode      String?   // Gives them access to judge for this year
-    tracks          String[]  // Tracks they are responsible for judging
+    accessCode      String    @unique// Gives them access to judge for this year
+    tracks          String[]  @default(["all"]) // Tracks they are responsible for judging
     scores          Score[]   // Scores they've given
     createdAt       DateTime  @default(now())
     updatedAt       DateTime  @updatedAt

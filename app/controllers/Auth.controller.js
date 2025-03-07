@@ -312,6 +312,14 @@ export const emailLogin = async(req, res) => {
         const existingUser = await prisma.user.findUnique({
             where: {
                 email: req.body.email
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                password: true, // must explicitly select password since omitted by default
+                authProvider: true
             }
         });
 

@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import e from "express";
 import { connect } from "http2";
 import { z } from 'zod';
 
@@ -62,6 +63,16 @@ const applicationSchema = z.object({
     status: StatusSchema.default('PENDING').readonly(),
 });
 
+// Score schema
+const scoreSchema = z.object({
+    id: z.string().uuid().optional().readonly(),
+    projectId: z.string().uuid().optional().readonly(),
+    judgeId: z.string().uuid().optional().readonly(),
+    scoreData: z.object({}),
+    comments: z.string().nullable().optional(),
+
+});
+
 // Project schema
 const projectSchema = z.object({
     id: z.string().uuid().optional().readonly(),
@@ -80,6 +91,7 @@ const projectSchema = z.object({
     members: z.object({
         connect: z.array(z.object({ id: z.string().uuid() }))
     }),
+    scores: z.array(scoreSchema)
 });
 
 // Judge schema. Connects one-to-one with a user. Judge objects are used for judging but are kept separate from users
@@ -87,17 +99,19 @@ const judgeSchema = z.object({
     id: z.string().uuid().optional().readonly(),
     userId: z.string().uuid().optional().readonly(),
     tracks: z.array(z.string()).nullable().optional(),
+    accessCode: z.string().min(1, "Access code is required").readonly(),
+    user: z.union([
+        userSchema,
+        z.object({
+            connect: z.object({ id: z.string().uuid() })
+        }),
+        z.object({
+            create: z.any()
+        })
+    ]).optional()
 });
 
-// Score schema
-const scoreSchema = z.object({
-    id: z.string().uuid().optional().readonly(),
-    projectId: z.string().uuid().optional().readonly(),
-    judgeId: z.string().uuid().optional().readonly(),
-    scoreData: z.object({}),
-    comments: z.string().nullable().optional(),
 
-});
 
 /**
  * -------------- Schemas for creation ---------------
@@ -107,8 +121,7 @@ const scoreSchema = z.object({
  */
 const userCreateSchema = userSchema.omit({
     id: true,
-    role: true,
-    authProvider: true
+    role: true
 }).strict();
 const applicationCreateSchema = applicationSchema.omit({
     id: true,
@@ -116,10 +129,16 @@ const applicationCreateSchema = applicationSchema.omit({
 }).strict();
 const projectCreateSchema = projectSchema.omit({
     id: true,
+    isWinner: true,
+    scores: true,
+    placement: true,
+    prizeWon: true,
 }).strict();
 
 const judgeCreateSchema = judgeSchema.omit({
-    id: true
+    id: true,
+    accessCode: true,
+    user: true
 }).strict();
 
 const scoreCreateSchema = scoreSchema.omit({
@@ -146,7 +165,11 @@ const applicationUpdateSchema = applicationSchema.omit({
 }).partial().strict();
 const projectUpdateSchema = projectSchema.omit({
     id: true,
-    year: true
+    year: true,
+    isWinner: true,
+    scores: true,
+    placement: true,
+    prizeWon: true,
 }).partial().strict();
 
 const judgeUpdateSchema = judgeSchema.omit({
@@ -155,13 +178,18 @@ const judgeUpdateSchema = judgeSchema.omit({
     accessCode: true,
     createdAt: true,
     updatedAt: true,
-    tracks: true
+    tracks: true,
+    user: true
 }).partial().strict();
 
 
 /**
  * -------------- Schemas for admin ---------------
  */
+const adminJudgeCreateSchema = judgeSchema.omit({
+    id: true
+}).strict();
+const adminJudgeUpdateSchema = judgeSchema.partial().strict();
 
 // Create Prisma client with extensions. This will use zod schemas to validate data before executing queries
 const prismaInstance = new PrismaClient({
@@ -211,6 +239,7 @@ const prismaInstance = new PrismaClient({
         const role = args.userRole || 'USER';
 
         delete args.userRole;
+
 
           // Validate the data against the schema
           args.data = applicationCreateSchema.parse(args.data);
@@ -275,7 +304,11 @@ const prismaInstance = new PrismaClient({
     
             delete args.userRole;
             // Validate the data against the schema
-            args.data = judgeCreateSchema.parse(args.data);
+            if (role === 'ADMIN') {
+                args.data = adminJudgeCreateSchema.parse(args.data);
+            } else {
+                args.data = judgeCreateSchema.parse(args.data);
+            }
             return query(args);
     
         },
@@ -284,7 +317,11 @@ const prismaInstance = new PrismaClient({
     
             delete args.userRole;
             // Validate the update data against the partial schema
-            args.data = judgeUpdateSchema.parse(args.data);
+            if (role === 'ADMIN') {
+                args.data = adminJudgeUpdateSchema.parse(args.data);
+            } else {
+                args.data = judgeUpdateSchema.parse(args.data);
+            }
             return query(args);
     
         },
@@ -292,9 +329,16 @@ const prismaInstance = new PrismaClient({
             const role = args.userRole || 'USER';
     
             delete args.userRole;
-            // Validate both create and update data
-            args.create = judgeCreateSchema.parse(args.create);
-            args.update = judgeUpdateSchema.parse(args.update);
+
+            if (role === 'ADMIN') {
+                // Validate both create and update data
+                args.create = adminJudgeCreateSchema.parse(args.create);
+                args.update = adminJudgeUpdateSchema.parse(args.update);
+            } else {
+                // Validate both create and update data
+                args.create = judgeCreateSchema.parse(args.create);
+                args.update = judgeUpdateSchema.parse(args.update);
+            }
             return query(args);
     
         }

@@ -311,3 +311,133 @@ export const getAllProjectScores = async (req, res) => {
     return res.status(500).json({ error: 'An error occurred while fetching scores' });
   }
 };
+
+export const createJudge = async (req, res) => {
+    try {
+  
+        if (req.user.role !== "ADMIN") {
+          return res.status(403).json({ message: "You are not authorized to create a judge" });
+        }
+        
+
+        // generate random alphanumeric access code
+        const accessCode = Math.random().toString(36).substring(2, 10);
+
+        // if a userId is provided (meaning we want to automatically assign a judge)
+        if (req.body.userId) {
+          // Create judge with provided userId
+          const judge = await prisma.judge.create({
+              data: {
+                  accessCode: accessCode,
+                  tracks: req.body.tracks || ["all"],
+                  user: {
+                      connect: { id: req.body.userId }
+                  }
+              },
+              include: {
+                  user: {
+                      select: {
+                          id: true,
+                          email: true,
+                          firstName: true,
+                          lastName: true
+                      }
+                  }
+              },
+              userRole: req.user.role || "USER"
+          });
+          
+          return res.status(201).json({
+              message: "Judge created successfully",
+              judge
+          });
+      } else {
+          // if want to create judge object but dont attach a user yet
+          // Create a placeholder user since userId is required
+          // Generate a unique email for this placeholder user
+          const placeholderEmail = `judge-${accessCode}@placeholder.bostonhacks.org`;
+          console.log(placeholderEmail, accessCode);
+          
+          // Create both user and judge at once
+          const judge = await prisma.judge.create({
+              data: {
+                  accessCode: accessCode,
+                  tracks: req.body.tracks || ["all"],
+                  user: {
+                      create: {
+                          email: placeholderEmail,
+                          firstName: "Judge",
+                          lastName: accessCode.toUpperCase(),
+                          role: "USER",
+                          password: accessCode, // You might want to hash this
+                      }
+                  }
+              },
+              include: {
+                  user: {
+                      select: {
+                          id: true,
+                          email: true,
+                          firstName: true,
+                          lastName: true
+                      }
+                  }
+              },
+              userRole: req.user.role || "USER"
+          });
+          
+          return res.status(201).json({
+              message: "Judge created successfully with placeholder user",
+              judge,
+              accessCode: accessCode // Include access code in response
+          });
+      }
+
+    } catch (error) {
+        logger.error('createJudge(): Error creating judge:', error);
+        return res.status(500).json({ message: 'An error occurred while creating judge', error });
+    }
+};
+
+export const attachJudgeToUser = async (req, res) => {
+    try {
+        // check for access_code that is automatically generated on judge creation
+        const { access_code, userId } = req.body;
+
+
+        if (!access_code || !userId) {
+            return res.status(400).json({ message: 'access_code and userId are required' });
+        }
+
+        // check if user is correct
+        if (req.user.id !== userId) {
+            logger.warn(`Attempted unauthorized access to attach judge to user with id ${userId}`);
+            return res.status(403).json({
+                message: "You are not authorized to access this resource"
+            });
+        }
+
+
+        // Attach the judge to the user
+        const updatedJudge = await prisma.judge.update({
+            where: { id: judgeId },
+            data: {
+                user: {
+                    connect: { id: userId }
+                }
+            },
+            include: {
+                user: true
+            }
+        });
+
+        return res.status(200).json({
+            message: "Judge attached to user successfully",
+            judge: updatedJudge
+        });
+
+    } catch (error) {
+        logger.error('attachJudgeToUser(): Error attaching judge to user:', error);
+        return res.status(500).json({ message: 'An error occurred while attaching judge to user', error });
+    }
+}

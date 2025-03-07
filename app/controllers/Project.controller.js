@@ -67,19 +67,19 @@ export const createProject = async (req, res) => {
             });
         }
 
-        res.status(500).json({ message: "Internal server error", error: "" });
+        res.status(500).json({ message: "Internal server error", error: err });
     }
 };
 
 // get project
 export const getProject = async (req, res) => {
     try {
-        const { projectId } = req.params;
+        const { id } = req.params;
 
         // get project if user is the owner
         const project = await prisma.project.findUnique({
             where: { 
-                id: projectId
+                id: id
             }
         });
 
@@ -98,39 +98,62 @@ export const getProject = async (req, res) => {
 // update project
 export const updateProject = async (req, res) => {
     try {
-        const { projectId } = req.params;
+        const { id } = req.params;
 
         const project = await prisma.project.findUnique({
-            where: { id: projectId }
+            where: { id: id },
+            include: {
+                members: {
+                    select: {
+                        id: true
+                    }
+                }
+
+            }
         });
 
         if (!project) {
             return res.status(404).json({ message: "Project not found" });
         }
+        logger.debug(JSON.stringify(project, undefined, 2));
 
         // Check if user is the owner of the project
-        if (project.userId !== req.user.id) {
+        if (!project?.members?.some(member => member.id === req.user.id)) {
             return res.status(403).json({ message: "You are not authorized to update this project" });
         }
 
         // check if project is already judged, if so, no updates
-        if (project.scores.length > 0) {
+        if (project?.scores?.length > 0) {
             return res.status(403).json({ message: "Project has already been judged. No updates allowed" });
         }
 
+        // if we have no members, add the current user
+        if (!req.body.members) {
+            req.body.members = [];
+            req.body.members.push(req.user.id);
+        }
+
         const updatedProject = await prisma.project.update({
-            where: { id: projectId },
+            where: { id: id },
             data: {
                 ...req.body,
                 members: {
-                    connect: members.map(userId => ({ id: userId }))
+                    connect: req.body.members?.map(userId => ({ id: userId }))
+                }
+            },
+            include: {
+                members: {
+                    select: {
+                        email: true,
+                        id: true
+                    }
                 }
             }
         });
 
         return res.status(200).json({ message: "Project updated", updatedProject });
-    } catch (error) {
-        logger.error(`updateProject(): ${error}`);
+    } catch (err) {
+        logger.error(`updateProject(): ${err}`);
 
         // if zoderror, return the error message
         if (err.name === "ZodError") {
@@ -147,10 +170,10 @@ export const updateProject = async (req, res) => {
 // delete project
 export const deleteProject = async (req, res) => {
     try {
-        const { projectId } = req.params;
+        const { id } = req.params;
 
         const project = await prisma.project.findUnique({
-            where: { id: projectId }
+            where: { id: id }
         });
 
         if (!project) {
@@ -163,7 +186,7 @@ export const deleteProject = async (req, res) => {
         }
 
         await prisma.project.delete({
-            where: { id: projectId }
+            where: { id: id }
         });
 
         return res.status(200).json({ message: "Project deleted" });
