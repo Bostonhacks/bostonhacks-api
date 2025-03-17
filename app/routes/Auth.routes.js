@@ -1,5 +1,5 @@
 import express from "express"
-import { googleAuth, createEmailUser, googleCallback, emailLogin } from "../controllers/Auth.controller.js";
+import { googleAuth, createEmailUser, googleCallback, emailLogin, logout } from "../controllers/Auth.controller.js";
 
 const router = express.Router();
 
@@ -56,6 +56,8 @@ router.get("/google/login", googleAuth);
  *          
  */
 router.get("/google/callback", googleCallback);
+
+router.post("/logout", logout);
 
 // google login/signup
 // router.post("/google", googleAuth);

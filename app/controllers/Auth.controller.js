@@ -279,7 +279,7 @@ export const googleCallback = async(req, res) => {
 
 export const logout = async(req, res) => {
     try {
-        logger.info(`User ${req.user.id} logged out`)
+        logger.info(`User ${req.user?.id} logged out`)
         res.clearCookie("access_token", {
             // settings must be the same as the set cookie on login
             httpOnly: true,

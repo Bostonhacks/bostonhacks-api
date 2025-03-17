@@ -182,6 +182,12 @@ const judgeUpdateSchema = judgeSchema.omit({
     // user: true
 }).partial().strict();
 
+const scoreUpdateSchema = scoreSchema.omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+}).partial().strict();
+
 
 /**
  * -------------- Schemas for admin ---------------

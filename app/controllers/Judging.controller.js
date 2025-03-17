@@ -10,12 +10,15 @@ const prisma = prismaInstance;
 export const submitScore = async(req, res) => {
     try {
         const { projectId, scoreData } = req.body;
+        if (!projectId || !scoreData) {
+            return res.status(400).json({ message: 'projectId and scoreData are required' });
+        }
   
 
   
         // Check if user is a judge
         const judge = await prisma.judge.findUnique({
-          where: { userId: req.user.id }
+          where: { userId: req.user.id || ""}
         });
   
         if (!judge) {
@@ -24,7 +27,7 @@ export const submitScore = async(req, res) => {
   
         // Check if project exists
         const project = await prisma.project.findUnique({
-          where: { id: projectId }
+          where: { id: projectId || '' }
         });
   
         if (!project) {
@@ -47,9 +50,10 @@ export const submitScore = async(req, res) => {
   
         // Parse criteria list from JSON
         const criteriaList = judgingCriteria.criteriaList;
+        logger.debug(JSON.stringify(criteriaList, undefined, 2));
         
         // Validate scoreData against criteria
-        const validCriteriaNames = criteriaList.criteria.map(c => c.name);
+        const validCriteriaNames = Object.keys(criteriaList);
         const scoreKeys = Object.keys(scoreData);
   
         // Check if all submitted criteria are valid
@@ -74,10 +78,16 @@ export const submitScore = async(req, res) => {
   
         // Calculate total score using weights
         let totalScore = 0;
-        criteriaList.criteria.forEach(criterion => {
-          const score = scoreData[criterion.name];
-          totalScore += (score * criterion.weight);
-        });
+        for (const [key, value] of Object.entries(criteriaList)) {
+          logger.debug(`Criterion: ${key}, Weight: ${value.weight}, Score: ${scoreData[key]}`);
+          const score = scoreData[key];
+          if (score < 0 || score > 10) {
+            return res.status(400).json({
+                message: `Score for ${key} must be between 0 and 10`
+            });
+          }
+          totalScore += (score * value.weight);
+        }
   
         // Check if the judge already scored this project
         const existingScore = await prisma.score.findUnique({
@@ -121,10 +131,10 @@ export const submitScore = async(req, res) => {
         logger.error('submitScore(): Error submitting score:', error);
 
         // if zoderror, return the error message
-        if (err.name === "ZodError") {
+        if (error.name === "ZodError") {
           return res.status(400).json({
               message: "Validation error",
-              error: err.errors
+              error: error.errors
           });
         }
           
