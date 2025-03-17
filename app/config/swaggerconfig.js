@@ -226,6 +226,46 @@ const swaggerDefinition ={
                     }
                 }
             },
+            "JudgingCriteria": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Judging criteria's unique ID",
+                        "readOnly": true,
+                        "example": "1245-vxsd-1241-1241",
+                    },
+                    "year": {
+                        "type": "integer",
+                        "description": "Year for which the criteria is set",
+                        "example": 2025
+                    },
+                    "event": {
+                        "type": "string",
+                        "description": "Name of the event",
+                        "example": "BostonHacks",
+                        "default": "BostonHacks"
+                    },
+                    "criteriaList": {
+                        "type": "JSON",
+                        "description": "List of criteria for judging. Variable for each year",
+                        "example": JSON.stringify({
+                            "innovation": {
+                                "description": "How innovative is the project?",
+                                "weight": 0.3
+                            },
+                            "impact": {
+                                "description": "What impact will this project have?",
+                                "weight": 0.4
+                            },
+                            "presentation": {
+                                "description": "How well was the project presented?",
+                                "weight": 0.3
+                            }
+                        }, undefined, 2)
+                    }
+                }
+            },
             "Error": {
                 "type": "object",
                 "properties": {

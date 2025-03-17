@@ -1,7 +1,9 @@
 # BostonHacks-API
-API used for various applications such as judging, yearly website, etc. The goal of using this instead of Firebase as was done in the past for our backend logic is to make our codebase platform-agnostic. As a organization with constantly rotating members and limited access to some vital resources (like a phone number), deployments can move around-often times to personal accounts if a phone number/payment method is required. As such, the API is built using ExpressJS and interfaces with a PostgreSQL database that can be hosted anywhere interfaced with Prisma ORM. There is also the option to dockerize (preferred method) so that moving to a different deployment site if needed is easier. 
+API used for various applications such as judging, yearly website, etc. The goal of using this instead of Firebase as was done in the past for our backend logic is to make our codebase platform-agnostic. As a organization with constantly rotating members and limited access to some vital resources (like a phone number), deployments can move around-often times to personal accounts if a phone number/payment method is required. As such, the API is built using ExpressJS and interfaces with a PostgreSQL database that can be hosted anywhere interfaced with Prisma ORM. There is also the option to dockerize (preferred method) so that moving to a different deployment site if needed is easier. This code should work regardless of where it is moved to, and refrain from using platform specific APIs (and if so, make it easy to change the keys for). 
 
 # Notes
+In-depth documentation at [./docs](./docs)
+
 Follow this file structure [here](https://dev.to/mr_ali3n/folder-structure-for-nodejs-expressjs-project-435l)
 
 Every time you update `prisma/schema.prisma`:
@@ -29,7 +31,7 @@ There are two ways to run this API
    6. Run `npm run exitsql:dev` to exit Docker SQL container. Your data will persist even after closing the container.
       1. Optionally run `npm run cleansql:dev` to exit the SQL container and delete persistent storage **warning: this deletes all your persistent db data stored locally**.
 
-2. With a Docker container. This should be used as the last step to test your changes to see if they work before you push code. You can try to actively develop with this, but will have some issues since code does not auto-update when developing locally and Schema changes will not be applied until you create a Prisma migration locally first.
+2. With a Docker container -- This should be used as the last step to test your changes to see if they work before you push code. You can try to actively develop with this, but will have some issues since code does not auto-update when developing locally and Schema changes will not be applied until you create a Prisma migration locally first.
    1. All code must work in the Docker container since our work deploys with Docker containers.
    2. Ensure no other programs are using ports 8000. If you run into issues, try closing containers first.
    3. Create a `.env.test` file as specified in `.env.example`
@@ -39,7 +41,7 @@ There are two ways to run this API
       2. `npm run cleandocker:dev` to exit containers and remove created volumes
       3. Sometimes you might have to docker-compose down (exitdocker) to start again.
       4. Refer to [Docker](#docker) section to understand more
-   6. Run `npm run exitdocker:dev` to close Docker containers
+
 
 Before you push any changes, please make sure to check if your changes work by running them in the Docker containers in (2). Then add your changes to a branch, push to the GitHub repo and create a pull request. You might have to run `npm run build:dev` if you updated `/prisma/schema.prisma`
 **Do not push directly into main**
@@ -47,10 +49,10 @@ Before you push any changes, please make sure to check if your changes work by r
 You can look at `./package.json` to view the npm scripts used in these steps.
 
 # Documentation
-Documentation is automated with Swagger-JSDoc and Swagger-UI and availble at `{base_url}/api/docs`. Please refer to: 
+Documentation is automated with Swagger-JSDoc and Swagger-UI and availble at `{base_url}/docs`. Please refer to: 
 - [OpenAPI Docs](https://swagger.io/docs/specification/v3_0/about/) for OpenAPI documentation spec
 - [How to Document an Express API with Swagger UI and JSDoc](https://dev.to/kabartolo/how-to-document-an-express-api-with-swagger-ui-and-jsdoc-50do) for a tutorial on using JSDoc with Swagger. 
-- `./app/routes/OpenAPISchemas.js` and `./app/routes/User.routes.js` for some examples
+- `./app/config/swaggerconfig.js` and `./app/routes/User.routes.js` for some examples on reusable OpenAPI schemas and JSDoc documentation respectively
 
 ## Logging
 Logging is done with winston. Ensure that there is an environment variable with `LOG_LEVEL` set so that the logger logs at the correct level.
@@ -69,6 +71,9 @@ Deployment can be done either direct code deploy or Dockerized. The Dockerfile a
 
 ## CI/CD
 Tests are done on Pull requests which require the use of multiple secrets. Please check the repository's environment->secrets settings to see these if you are an admin. You might need to change/add to this list, along with the associated workflow files, if environment variables get added or changed.
+
+## DB
+Deployment database is a PostgreSQL instance hosted on Supabase. Although Supabase has an API, we don't use this as Supabase might not be the best option in the future, so the only code to change if a migration occurs is the database URI.
 
 <br/>
 
@@ -122,6 +127,7 @@ To remove containers:
 
 
 
+<del>
 ### Deploying your application to the cloud
 
 First, build your image, e.g.: `docker build -t myapp .`.
@@ -137,3 +143,6 @@ docs for more detail on building and pushing.
 
 ### References
 * [Docker's Node.js guide](https://docs.docker.com/language/nodejs/)
+* 
+
+</del>
