@@ -68,7 +68,7 @@ const scoreSchema = z.object({
     id: z.string().uuid().optional().readonly(),
     projectId: z.string().uuid().optional().readonly(),
     judgeId: z.string().uuid().optional().readonly(),
-    scoreData: z.object({}),
+    scoreData: z.record(z.string(), z.number()),
     comments: z.string().nullable().optional(),
 
 });
@@ -186,6 +186,7 @@ const scoreUpdateSchema = scoreSchema.omit({
     id: true,
     createdAt: true,
     updatedAt: true,
+    projectId: true
 }).partial().strict();
 
 

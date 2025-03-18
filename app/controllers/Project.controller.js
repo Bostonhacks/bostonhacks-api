@@ -13,6 +13,25 @@ export const createProject = async (req, res) => {
             return res.status(400).json({ message: "members array field is required" });
         }
 
+        // find members
+        const foundMembers = await prisma.user.findMany({
+            where: {
+                email: {
+                    in: members
+                }
+            },
+            select: {
+                id: true
+            }
+        });
+        // squash objects to array
+        const foundMembersIds = foundMembers.map(member => member.id);
+
+        if (foundMembersIds.length !== members.length) {
+            return res.status(400).json({ message: "One or more members not found" });
+        }
+
+
         if (req.body.year !== new Date().getFullYear()) {
             return res.status(400).json({ message: "Invalid year" });
         }
@@ -21,7 +40,7 @@ export const createProject = async (req, res) => {
         const usersWithProjects = await prisma.user.findMany({
             where: {
                 id: {
-                    in: members
+                    in: foundMembersIds
                 },
             },
             select: {
@@ -50,7 +69,7 @@ export const createProject = async (req, res) => {
             data: { 
                 ...req.body,
                 members: {
-                    connect: members.map(userId => ({ id: userId }))
+                    connect: foundMembersIds.map(userId => ({ id: userId }))
                 }
             }
         });
@@ -80,6 +99,14 @@ export const getProject = async (req, res) => {
         const project = await prisma.project.findUnique({
             where: { 
                 id: id
+            },
+            include: {
+                members: {
+                    select: {
+                        email: true,
+                        id: true
+                    }
+                }
             }
         });
 

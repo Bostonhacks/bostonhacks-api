@@ -363,8 +363,9 @@ export const emailLogin = async(req, res) => {
 
         logger.info(`User with email ${existingUser.email} logged in`);
 
-        // Remove password from response
+        // remove password from response
         const { password, ...userWithoutPassword } = existingUser;
+
 
         res.cookie('access_token', accessToken, {
             httpOnly: true,
@@ -386,11 +387,11 @@ export const emailLogin = async(req, res) => {
 
 export const createEmailUser = async(req, res) => {
     try {
-        if (process.env.NODE_ENV === "production") {
-            return res.status(501).json({
-                message: "Not implemented"
-            })
-        }
+        // if (process.env.NODE_ENV === "production") {
+        //     return res.status(501).json({
+        //         message: "Not implemented"
+        //     })
+        // }
         // Input validation
         // change to use validate schema middleware
         if (!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName) {
@@ -454,9 +455,6 @@ export const createEmailUser = async(req, res) => {
 
         logger.info(`User with email ${user.email} created`);
 
-        // Remove password from response
-        const { password, ...userWithoutPassword } = user;
-
         res.cookie('access_token', accessToken, {
             httpOnly: true,
             domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
@@ -465,7 +463,7 @@ export const createEmailUser = async(req, res) => {
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
         }).status(201).json({
             message: "User created successfully",
-            user: userWithoutPassword
+            user: user
         });
     } catch(err) {
         logger.error(`User creation error: ${err.message}`);

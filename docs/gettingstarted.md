@@ -28,7 +28,7 @@ Your local copy will have no data associated with it. You should
 1) Create your own user
 
 # Google Cloud App Setup
-Head to [https://support.google.com/cloud/answer/6158849?hl=en](https://support.google.com/cloud/answer/6158849?hl=en)
+Head to [https://support.google.com/cloud/answer/6158849?hl=en](https://support.google.com/cloud/answer/6158849?hl=en) and follow the steps to create an OAuth client.
 
 You should add the following URLs into redirect URL
 
@@ -37,3 +37,5 @@ You should add the following URLs into redirect URL
 You should also add the test gmail accounts you wish to use to create mock users. These will be the only users allowed to use your GAuth client.
 
 ![gauth2](./images/gettingstarted_gauth2.png)
+
+You can also find your Google Client ID and Secret on this portal when you create an OAuth Client

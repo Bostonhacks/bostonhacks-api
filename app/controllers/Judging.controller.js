@@ -98,25 +98,21 @@ export const submitScore = async(req, res) => {
             }
           }
         });
+
+        logger.debug(JSON.stringify(req.body.scoreData, undefined, 2));
   
+        // insert score
         let score;
         if (existingScore) {
-          // Update existing score
-          score = await prisma.score.update({
-            where: {
-              id: existingScore.id
-            },
-            data: {
-              ...req.body,
-            }
-          });
+          return res.status(400).json({ message: 'Judge has already submitted a score for this project' });
         } else {
           // Create new score
           score = await prisma.score.create({
             data: {
               ...req.body,
+              scoreData: scoreData,
               judgeId: judge.id,
-              projectId: projectId,
+              projectId: projectId
 
             }
           });
@@ -141,6 +137,130 @@ export const submitScore = async(req, res) => {
         return res.status(500).json({ error: 'An error occurred while submitting score' });
     }
 };
+
+export const updateScore = async(req, res) => {
+  try {
+    const { scoreData } = req.body;
+    const { scoreId } = req.params;
+    if (!scoreId || !scoreData) {
+        return res.status(400).json({ message: 'scoreId and scoreData are required' });
+    }
+
+
+
+    // Check if user is a judge
+    const judge = await prisma.judge.findUnique({
+      where: { userId: req.user.id || ""}
+    });
+
+    if (!judge) {
+      return res.status(403).json({ message: 'You are not authorized to judge projects' });
+    }
+
+    // Check if score exists
+    const score = await prisma.score.findUnique({
+      where: {
+        id: scoreId
+      },
+      include: {
+        project: {
+          select: {
+            year: true
+          }
+        }
+      }
+    });
+
+    if (!score) {
+      return res.status(404).json({ message: 'Score not found' });
+    }
+
+    // Get current judging criteria for the project's year
+    const judgingCriteria = await prisma.judgingCriteria.findUnique({
+      where: {
+        year_event: {
+          year: score?.project?.year,
+          event: 'BostonHacks', // Default event 
+        }
+      }
+    });
+
+    if (!judgingCriteria) {
+      return res.status(404).json({ message: 'Judging criteria not set for this year' });
+    }
+
+    // Parse criteria list from JSON
+    const criteriaList = judgingCriteria.criteriaList;
+    logger.debug(JSON.stringify(criteriaList, undefined, 2));
+    
+    // Validate scoreData against criteria
+    const validCriteriaNames = Object.keys(criteriaList);
+    const scoreKeys = Object.keys(scoreData);
+
+    // Check if all submitted criteria are valid
+    const invalidCriteria = scoreKeys.filter(key => !validCriteriaNames.includes(key));
+    if (invalidCriteria.length > 0) {
+        return res.status(400).json({
+            message: 'Invalid scoring criteria',
+            invalidCriteria,
+            validCriteria: validCriteriaNames
+        });
+    }
+
+    // Check if all required criteria are present
+    const missingCriteria = validCriteriaNames.filter(name => !scoreKeys.includes(name));
+    if (missingCriteria.length > 0) {
+        return res.status(400).json({
+            message: 'Missing required scoring criteria',
+            missingCriteria,
+            requiredCriteria: validCriteriaNames
+        });
+    }
+
+    // Calculate total score using weights
+    let totalScore = 0;
+    for (const [key, value] of Object.entries(criteriaList)) {
+      logger.debug(`Criterion: ${key}, Weight: ${value.weight}, Score: ${scoreData[key]}`);
+      const score = scoreData[key];
+      if (score < 0 || score > 10) {
+        return res.status(400).json({
+            message: `Score for ${key} must be between 0 and 10`
+        });
+      }
+      totalScore += (score * value.weight);
+    }
+
+    logger.debug(JSON.stringify(req.body.scoreData, undefined, 2));
+
+      // Update existing score
+    const updatedScore = await prisma.score.update({
+      where: {
+        id: score.id
+      },
+      data: {
+        ...req.body,
+        scoreData: scoreData
+      }
+    });
+
+    return res.status(200).json({ 
+      message: 'Score submitted successfully', 
+      updatedScore
+    });
+} catch (error) {
+    logger.error('updateScore(): Error updating score:', error);
+
+    // if zoderror, return the error message
+    if (error.name === "ZodError") {
+      return res.status(400).json({
+          message: "Validation error",
+          error: error.errors
+      });
+    }
+      
+    return res.status(500).json({ error: 'An error occurred while submitting score' });
+}
+}
 
 /**
  * Get projects to be judged by the current judge
@@ -240,9 +360,43 @@ export const getJudgingCriteria = async (req, res) => {
 /**
  * Get a judge's existing score for a project
  */
-export const getProjectScore = async (req, res) => {
+export const getScore = async (req, res) => {
+  // try {
+  //   const { projectId } = req.params;
+
+  //   // Check if user is a judge
+  //   const judge = await prisma.judge.findUnique({
+  //     where: { userId: req.user.id }
+  //   });
+
+  //   if (!judge) {
+  //     return res.status(403).json({ message: 'You are not authorized to judge projects' });
+  //   }
+
+  //   // Get the score if it exists
+  //   const score = await prisma.score.findUnique({
+  //     where: {
+  //       judgeId_projectId: {
+  //         judgeId: judge.id,
+  //         projectId
+  //       }
+  //     }
+  //   });
+
+  //   if (!score) {
+  //     return res.status(404).json({ message: 'Score not found' });
+  //   }
+
+  //   return res.status(200).json(score);
+  // } catch (error) {
+  //   console.error('getProjectScore(): Error fetching project score:', error);
+  //   return res.status(500).json({ 
+  //     message: 'An error occurred while fetching project score',
+  //     error: error
+  //   });
+  // }
   try {
-    const { projectId } = req.params;
+    const { scoreId } = req.params;
 
     // Check if user is a judge
     const judge = await prisma.judge.findUnique({
@@ -253,13 +407,18 @@ export const getProjectScore = async (req, res) => {
       return res.status(403).json({ message: 'You are not authorized to judge projects' });
     }
 
+    if (!scoreId) {
+      const scores = await prisma.score.findMany({
+        where: {
+          judgeId: judge.id
+        }
+      });
+      return res.status(200).json(scores);
+    }
     // Get the score if it exists
     const score = await prisma.score.findUnique({
       where: {
-        judgeId_projectId: {
-          judgeId: judge.id,
-          projectId
-        }
+        id: scoreId
       }
     });
 
@@ -268,8 +427,8 @@ export const getProjectScore = async (req, res) => {
     }
 
     return res.status(200).json(score);
-  } catch (error) {
-    console.error('getProjectScore(): Error fetching project score:', error);
+  } catch(error) {
+    logger.error('getScore(): Error fetching project score:', error);
     return res.status(500).json({ 
       message: 'An error occurred while fetching project score',
       error: error

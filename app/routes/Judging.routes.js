@@ -1,5 +1,5 @@
 import express from "express"
-import { submitScore, getProjectScore, getProjectsToJudge, getJudgingCriteria, getAllProjectScores, createJudge, attachJudgeToUser } from "../controllers/Judging.controller.js";
+import { submitScore, getScore, getProjectsToJudge, getJudgingCriteria, getAllProjectScores, createJudge, attachJudgeToUser, updateScore } from "../controllers/Judging.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
@@ -40,16 +40,20 @@ router.get("/criteria", verifyToken, getJudgingCriteria);
 
 router.get("/projects", verifyToken, getProjectsToJudge);
 
-router.post("/submit", verifyToken, submitScore);
+router.post("/score", verifyToken, submitScore);
+router.get("/score", verifyToken, getScore);
+router.get("/score/:scoreId", verifyToken, getScore);
+router.put("/score/:scoreId", verifyToken, updateScore);
 
 router.post("/createjudge", verifyToken, createJudge);
 
-router.get("/score/:projectId", verifyToken, getProjectScore);
 
 // verify admin too, not just token. move this to admin functions only
 router.get("/scores/:projectId", verifyToken, getAllProjectScores);
 
 router.post("/attachjudge", verifyToken, attachJudgeToUser);
+
+
 
 
 
