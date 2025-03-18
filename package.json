@@ -35,7 +35,8 @@
     "sql:dev": "docker compose -f docker-compose.dev.yml up --build db -d && npm run dbpush",
     "exitsql:dev": "docker compose -f docker-compose.dev.yml down",
     "cleansql:dev": "docker compose -f docker-compose.dev.yml down -v",
-    "prismastudio:dev": "dotenv -e .env.development -- npx prisma studio"
+    "prismastudio:dev": "dotenv -e .env.development -- npx prisma studio",
+    "prismastudio:prod": "dotenv -e .env.production -- npx prisma studio"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.9",

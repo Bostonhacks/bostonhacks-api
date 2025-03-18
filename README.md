@@ -34,7 +34,7 @@ There are two ways to run this API
 2. With a Docker container -- This should be used as the last step to test your changes to see if they work before you push code. You can try to actively develop with this, but will have some issues since code does not auto-update when developing locally and Schema changes will not be applied until you create a Prisma migration locally first.
    1. All code must work in the Docker container since our work deploys with Docker containers.
    2. Ensure no other programs are using ports 8000. If you run into issues, try closing containers first.
-   3. Create a `.env.test` file as specified in `.env.example`
+   3. Create a `.env.production` file as specified in `.env.example`
    4. If you changed schemas, run `npm run build:dev` to create a migration. If you don't do this, then your changes will not be reflected in the test environment.
    5. Run `npm run docker:dev` to start the docker container
       1. `npm run exitdocker:dev` to exit containers

@@ -3,7 +3,7 @@ services:
     build:
       context: .
     env_file:
-      - .env.test
+      - .env.production
     ports:
       - 8000:8000
     # command: sh -c "npm run migrate:dev && npx nodemon -L server.js"
@@ -35,6 +35,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  prisma:
+    build:
+      context: .
+    ports: 
+      - 5555:5555
+    env_file:
+      - .env.production
+    depends_on:
+      - server
+    command: sh -c "npm run prismastudio:prod"
+    
 
 volumes:
   db-data:

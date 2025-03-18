@@ -26,7 +26,7 @@ COPY package*.json ./
 COPY ./prisma prisma
 
 # RUN npm ci --omit=dev
-RUN npm ci
+RUN npm ci --omit=dev
 
 
 RUN chown -R node:node /usr/src/app/node_modules/.prisma
