@@ -19,7 +19,8 @@ You will need node and npm for this
    1) `npm run exitdocker:dev` to stop the server OR
    2) `npm run cleandocker:dev` to stop the server AND erase the persisting database
 5) Go to `localhost:8000/docs` to view the documentation
-6) **Ensure you `git pull origin main` often so that you get the latest changes. There is currently no autoupdate mechanism.
+6) Go to `localhost:5555` for Prisma Studio - this is a dev environment tool that lets you see and modify your data freely.
+7) **Ensure you `git pull origin main` often so that you get the latest changes. There is currently no autoupdate mechanism.
 
 
 ## Populating Data

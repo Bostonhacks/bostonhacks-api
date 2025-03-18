@@ -44,7 +44,8 @@ services:
     env_file:
       - .env.production
     depends_on:
-      - server
+        db:
+          condition: service_healthy
     command: sh -c "npm run prismastudio:prod"
     
 
