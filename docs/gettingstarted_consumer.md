@@ -1,15 +1,11 @@
-# How to use API while in development
+# API Usage for API Consumeres
 When developing an application that requires our user data or updating it, you will need to run the code locally.
-
-Refer to one of the sections depending on your situation
-1) [Consumers](#getting-started-for-api-consumers) - If you are purely using a local copy of this API to develop a separate app
-2) [Developers](#) - If you are actively developing in this repository
 
 ## Disclaimer
 This API is currently only for internal use which is why there is no option for API keys to interact with the API in your own app. 
 
 # Getting started for API consumers
-You will need node and npm for this
+You will need node, npm, and Docker Desktop for this.
 
 1) Clone this repository
 2) Enter the root directory
@@ -25,7 +21,15 @@ You will need node and npm for this
 
 ## Populating Data
 Your local copy will have no data associated with it. You should 
-1) Create your own user
+
+Auth is handled with cookies so whichever user you are logged in with is automatically used for authorization for the endpoints. This means if you want to act under a certain account, you must logout, then login to get the new cookie.
+
+1) Create a couple of users (either using GAuth or Email)
+   1) One regular "USER" like a hacker
+   2) One "ADMIN" which would be an organizer
+      1) The ADMIN role needs to be hand changed in Prisma studio
+2) Login as a regular user and create a couple of resources such as an Application. 
+3) Login as an admin and test the /admin routes (the only routes available to admins)
 
 # Google Cloud App Setup
 Head to [https://support.google.com/cloud/answer/6158849?hl=en](https://support.google.com/cloud/answer/6158849?hl=en) and follow the steps to create an OAuth client.

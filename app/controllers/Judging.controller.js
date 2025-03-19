@@ -239,7 +239,8 @@ export const updateScore = async(req, res) => {
       },
       data: {
         ...req.body,
-        scoreData: scoreData
+        scoreData: scoreData,
+        totalScore: totalScore
       }
     });
 
@@ -611,7 +612,6 @@ export const attachJudgeToUser = async (req, res) => {
 
 
         // Attach the judge to the user
-        // eslint-disable-next-line no-unused-vars
         const result = await prisma.$transaction(async (tx) => {
           // 1. First update the judge to point to the new user
           const updatedJudge = await tx.judge.update({
