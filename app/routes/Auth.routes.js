@@ -1,5 +1,5 @@
 import express from "express"
-import { googleAuth, createEmailUser, googleCallback, emailLogin } from "../controllers/Auth.controller.js";
+import { googleAuth, createEmailUser, googleCallback, emailLogin, logout } from "../controllers/Auth.controller.js";
 
 const router = express.Router();
 
@@ -7,6 +7,31 @@ const router = express.Router();
 // either google oauth or email 
 // check db if using email, if so pass is required,
 // if google oauth, no password required but must set
+
+/**
+ * @openapi
+ * 
+ * /email/signup:
+ *  post:
+ *      summary: Signs up user via email
+ *      description: 
+ *      requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                email:
+ *                  type: string
+ *                password:
+ *                  type: string
+ *                firstName:
+ *                  type: string
+ *                lastName:
+ *                  type: string
+ *      tags: [Auth]
+ */
 router.post("/email/signup", createEmailUser);
 
 /**
@@ -57,10 +82,33 @@ router.get("/google/login", googleAuth);
  */
 router.get("/google/callback", googleCallback);
 
+router.post("/logout", logout);
+
 // google login/signup
 // router.post("/google", googleAuth);
 
-
+/**
+ * @openapi
+ * 
+ * /email/login:
+ *  post:
+ *      summary: Logs in user via email
+ *      description: 
+ *      requestBody:
+ *          required: true
+ *          content:
+ *             application/json:
+ * 
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      email: 
+ *                          type: string
+ *                      password:
+ *                          type: string
+ * 
+ *      tags: [Auth]
+ */
 router.post("/email/login", emailLogin)
 
 export default router;

@@ -1,1 +1,0 @@
-// schemas defined in app/config/swaggerconfig.js

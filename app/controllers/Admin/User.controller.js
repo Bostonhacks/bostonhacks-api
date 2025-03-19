@@ -1,5 +1,5 @@
-import prismaInstance from "../database/Prisma.js";
-import logger from "../utils/logger.js";
+import prismaInstance from "../../database/Prisma.js";
+import logger from "../../utils/logger.js";
 
 const prisma = prismaInstance;
 

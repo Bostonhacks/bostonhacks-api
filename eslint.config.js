@@ -7,13 +7,21 @@ export default [
   {languageOptions: { globals: globals.node }},
   pluginJs.configs.recommended,
   {
-    ignores: ["__tests__/"]
+    ignores: [
+      "__tests__/",
+      "app/database/Prisma.js",
+    ]
+  },
+  {
+    rules: {
+      // Keep no-unused-vars as error but with more specific exceptions
+      "no-unused-vars": ["error", { 
+        "vars": "all",
+        "args": "after-used",
+        "ignoreRestSiblings": true,
+        "varsIgnorePattern": "^_" // Ignore variables starting with underscore
+      }]
+    }
   }
-  // {
-  //   rules: {
-  //     "no-unused-vars": "warn",
-  //     "no-undef": "warn"
-  //   }
-  // }  
 
 ];

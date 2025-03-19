@@ -2,8 +2,8 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import prismaInstance from "../database/Prisma.js";
-import logger from "../utils/logger.js";
+import prismaInstance from "../../database/Prisma.js";
+import logger from "../../utils/logger.js";
 
 const prisma = prismaInstance;
 
@@ -216,9 +216,7 @@ export const googleCallback = async(req, res) => {
                 headers: { Authorization: `Bearer ${accessToken.access_token}` }
             }).then(res => res.json());
 
-            logger.debug(JSON.stringify(userInfo, undefined, 2));
-
-            if (!userInfo.email_verified && !userInfo.verified_email) {
+            if (!userInfo.email_verified) {
                 return res.status(401).json({ message: 'Email not verified' });
             }
         

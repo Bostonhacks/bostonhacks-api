@@ -18,27 +18,28 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 
-# Download dependencies as a separate step to take advantage of Docker's caching.
-# Leverage a cache mount to /root/.npm to speed up subsequent builds.
-# Leverage a bind mounts to package.json and package-lock.json to avoid having to copy them into
-# into this layer.
-COPY package*.json ./
-COPY ./prisma prisma
+# Give the node user ownership of the app directory.
+RUN chown -R node:node /usr/src/app
 
-# RUN npm ci --omit=dev
-RUN npm ci
-
-
-RUN chown -R node:node /usr/src/app/node_modules/.prisma
-
-
-# Copy the rest of the source files into the image.
-COPY . .
-
-RUN chown -R node:node /usr/src/app/prisma
+# install dependencies
+COPY --chown=node:node package*.json ./
+COPY --chown=node:node ./prisma prisma
 
 # Run the application as a non-root user.
 USER node
+
+RUN npm ci --omit=dev
+
+
+# RUN chown -R node:node /usr/src/app/node_modules/.prisma
+
+
+# Copy the rest of the source files into the image.
+COPY --chown=node:node . .
+
+# RUN chown -R node:node /usr/src/app/prisma
+
+
 
 # Expose the port that the application listens on.
 EXPOSE 8000

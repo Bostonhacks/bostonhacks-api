@@ -1,6 +1,6 @@
 import request from 'supertest';
 // import authRouter from "../../app/routes/Auth.routes.js"
-import app from "../../app.js"
+import app from "../app.js"
 import jest from "jest"
 
 

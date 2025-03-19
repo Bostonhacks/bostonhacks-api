@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "^6.5.0",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -11,11 +11,12 @@
     "express-session": "^1.18.1",
     "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.13.1",
+    "pg": "^8.14.1",
     "supertest": "^7.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^3.24.2"
   },
   "type": "module",
   "scripts": {
@@ -31,18 +32,19 @@
     "docker:test": "docker-compose -f docker-compose.test.yml build && docker-compose -f docker-compose.test.yml run test",
     "exitdocker:dev": "docker-compose -f docker-compose.dev.yml down",
     "cleandocker:dev": "docker-compose -f docker-compose.dev.yml down -v",
-    "sql:dev": "docker compose -f docker-compose.dev.yml up --build db -d",
+    "sql:dev": "docker compose -f docker-compose.dev.yml up --build db -d && npm run dbpush",
     "exitsql:dev": "docker compose -f docker-compose.dev.yml down",
     "cleansql:dev": "docker compose -f docker-compose.dev.yml down -v",
-    "prismastudio:dev": "dotenv -e .env.development -- npx prisma studio"
+    "prismastudio:dev": "dotenv -e .env.development -- npx prisma studio",
+    "prismastudio:prod": "dotenv -e .env.production -- npx prisma studio"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.9",
-    "@eslint/js": "^9.20.0",
-    "eslint": "^9.20.1",
-    "globals": "^15.15.0",
+    "@eslint/js": "^9.22.0",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
     "jest": "^29.7.0",
     "nodemon": "^3.1.9",
-    "prisma": "^6.2.1"
+    "prisma": "^6.5.0"
   }
 }
