@@ -216,7 +216,9 @@ export const googleCallback = async(req, res) => {
                 headers: { Authorization: `Bearer ${accessToken.access_token}` }
             }).then(res => res.json());
 
-            if (!userInfo.email_verified) {
+            logger.debug(JSON.stringify(userInfo, undefined, 2));
+
+            if (!userInfo.email_verified && !userInfo.verified_email) {
                 return res.status(401).json({ message: 'Email not verified' });
             }
         
