@@ -29,15 +29,30 @@ dotenv.config({ path: path.join(path.resolve(), `.env.${process.env.NODE_ENV}`)}
 // express app
 const app = express();
 
+const devOrigins = [
+  "http://localhost:3000",
+  "http://localhost:8000",
+  "http://127.0.0.1:3000"
+];
+const prodOrigins = [
+  "https://bostonhacks.org",
+  "https://admin.bostonhacks.org",
+  "https://judging.bostonhacks.org",
+  "https://www.bostonhacks.org",
+  process.env.LOCAL_DEV === "true" ? "http://localhost:3000" : null
+]
+
 // middlewares
 app.use(express.json());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ["https://bostonhacks.org", "https://admin.bostonhacks.org", "https://judging.bostonhacks.org", "https://www.bostonhacks.org"] // Production domain
-    : ['http://localhost:3000', 'http://localhost:8000', 'http://127.0.0.1:3000'], // Development domains
+    ? prodOrigins.filter(Boolean) // filter out any null values
+    : devOrigins,
   credentials: true
 }));
 app.use(cookieParser());
+
+// console.log(prodOrigins.filter(Boolean));
 // app.use(session({
 //   secret: process.env.JWT_SECRET,
 //   resave: false,

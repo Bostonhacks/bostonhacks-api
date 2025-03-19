@@ -12,8 +12,9 @@ const prisma = prismaInstance;
 // const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const GOOGLE_OAUTH_SCOPES = [
-    "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/userinfo.profile"
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "https://www.googleapis.com/auth/userinfo.email"
+
 ];
 
 /*
@@ -107,13 +108,34 @@ You can switch to a complete backend auth system by uncommenting
 the next two functions and the routes associated with them */
 export const googleAuth = async(req, res) => {
     try {
+        const { redirect_uri, redirect } = req.query;
+        if (!redirect_uri && redirect) {
+            return res.status(400).json({
+                message: "Missing redirect_uri"
+            });
+        }
 
+        // check if redirect_uri has http or https
+        if (redirect_uri && !/^https?:\/\//.test(redirect_uri)) {
+            return res.status(400).json({
+                message: "Invalid redirect_uri"
+            });
+        }
+
+        // logger.info("Redirecting to Google OAuth consent screen");
         const state = crypto.randomBytes(32).toString('hex');
+
+        const token = {
+            state: state,
+            redirect_uri: redirect_uri || null
+        }
+        // remove null from token
+        Object.keys(token).forEach(key => token[key] == null && delete token[key]);
        
         // sign cookie with jwt with state
-        const oauthstate = jwt.sign({ state }, process.env.JWT_SECRET, { expiresIn: '5m' });
+        const oauthstate = jwt.sign(token, process.env.JWT_SECRET, { expiresIn: '5m' });
         
-        const scopes = GOOGLE_OAUTH_SCOPES.join(" ");
+        const scopes = GOOGLE_OAUTH_SCOPES.join("%20");
         const GOOGLE_OAUTH_CONSENT_SCREEN_URL = `${process.env.GOOGLE_OAUTH_URL}?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_CALLBACK_URL}&access_type=offline&response_type=code&state=${state}&scope=${scopes}`;
 
        
@@ -126,7 +148,11 @@ export const googleAuth = async(req, res) => {
         });
 
         
-        res.redirect(GOOGLE_OAUTH_CONSENT_SCREEN_URL);
+        // res.redirect(GOOGLE_OAUTH_CONSENT_SCREEN_URL);
+        res.status(200).json({
+            message: "Redirecting to Google OAuth consent screen",
+            url: GOOGLE_OAUTH_CONSENT_SCREEN_URL
+        });
 
 
     } catch(err) {
@@ -140,6 +166,7 @@ export const googleCallback = async(req, res) => {
     try {
        
         let userInfo;
+        let redirect_uri;
         if (req.headers.authorization) {
             // good for testing with postman, insomnia, etc. 
             // This assumes you have already gotten an access token by means from another source (i.e. insomnia OAuth2 login with same client id)
@@ -163,6 +190,7 @@ export const googleCallback = async(req, res) => {
                 })
             }
 
+
             // check if state matches
             try {
                 const decodedState = jwt.verify(oauthstateCookie, process.env.JWT_SECRET)
@@ -171,6 +199,8 @@ export const googleCallback = async(req, res) => {
                         message: "Invalid token state"
                     })
                 }
+
+                redirect_uri = decodedState.redirect_uri;
 
                 res.clearCookie("oauthstate", {
                     domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
@@ -216,6 +246,7 @@ export const googleCallback = async(req, res) => {
                 headers: { Authorization: `Bearer ${accessToken.access_token}` }
             }).then(res => res.json());
 
+
             logger.debug(JSON.stringify(userInfo, undefined, 2));
 
             if (!userInfo.email_verified && !userInfo.verified_email) {
@@ -256,7 +287,13 @@ export const googleCallback = async(req, res) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        }).status(200).json({
+        })
+        
+        if (redirect_uri) {
+            logger.info("Redirecting to: " + redirect_uri);
+            return res.redirect(redirect_uri);
+        }
+        return res.status(200).json({
             message: "User logged in successfully",
             user: user
         });
