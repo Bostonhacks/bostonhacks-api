@@ -389,11 +389,13 @@ export const emailLogin = async(req, res) => {
 
 export const createEmailUser = async(req, res) => {
     try {
-        // if (process.env.NODE_ENV === "production") {
-        //     return res.status(501).json({
-        //         message: "Not implemented"
-        //     })
-        // }
+        const allowEmailSignup = process.env.EMAIL_SIGNUP ? process.env.EMAIL_SIGNUP === "true" : false;
+        if (!allowEmailSignup) {
+            return res.status(501).json({
+                message: "Email signup is not enabled"
+            });
+        }
+
         // Input validation
         // change to use validate schema middleware
         if (!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName) {
