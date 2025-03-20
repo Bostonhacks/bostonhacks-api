@@ -13,8 +13,8 @@ const router = express.Router();
  * 
  * /email/signup:
  *  post:
- *      summary: Signs up user via email
- *      description: 
+ *      summary: NOT IMPLEMENTED IN PRODUCTION. Signs up user via email
+ *      description: Not implemented in production. This means you can use this locally, but the production deployment will not have this route implemented yet. Please use this freely to work on development, but handle user flows with Google Auth.
  *      requestBody:
  *         required: true
  *         content:
