@@ -53,3 +53,34 @@ export const getUser = async(req, res) => {
         });
     }
 }
+
+export const getSelf = async(req, res) => {
+    try {
+        // finds user based on token info instead of query
+        const user = await prisma.user.findUnique({
+            where: {
+                id: req.user.id
+            },
+            select: {
+                id: true,
+                email: true
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        // logger.info(`User with id ${req.user.id} retrieved`)
+        return res.status(200).json(user);
+
+    } catch(err) {
+        logger.error(err);
+        res.status(500).json({
+            message: "Something went wrong",
+            error: err
+        });
+    }
+}
