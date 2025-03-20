@@ -108,18 +108,23 @@ You can switch to a complete backend auth system by uncommenting
 the next two functions and the routes associated with them */
 export const googleAuth = async(req, res) => {
     try {
-        const { redirect_uri, redirect } = req.query;
-        if (!redirect_uri && redirect) {
-            return res.status(400).json({
-                message: "Missing redirect_uri"
-            });
-        }
+        const { redirect_uri } = req.query;
+        let { error_uri } = req.query;
 
-        // check if redirect_uri has http or https
+        // check if uris have http or https
         if (redirect_uri && !/^https?:\/\//.test(redirect_uri)) {
             return res.status(400).json({
                 message: "Invalid redirect_uri"
             });
+        }
+        if (error_uri && !/^https?:\/\//.test(error_uri)) {
+            return res.status(400).json({
+                message: "Invalid error_uri"
+            });
+        }
+        // if redirect_uri or error_uri is not provided if one is provided, return
+        if (redirect_uri && !error_uri) {
+            error_uri = redirect_uri;
         }
 
         // logger.info("Redirecting to Google OAuth consent screen");
@@ -127,7 +132,8 @@ export const googleAuth = async(req, res) => {
 
         const token = {
             state: state,
-            redirect_uri: redirect_uri || null
+            redirect_uri: redirect_uri || null,
+            error_uri: error_uri || null
         }
         // remove null from token
         Object.keys(token).forEach(key => token[key] == null && delete token[key]);
@@ -142,7 +148,7 @@ export const googleAuth = async(req, res) => {
         res.cookie("oauthstate", oauthstate, {
             domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production' && process.env.LOCAL_DEV !== "true",
             sameSite: "lax", // needed for redirect
             maxAge: 5 * 60 * 1000 // 5 minutes
         });
@@ -167,6 +173,7 @@ export const googleCallback = async(req, res) => {
        
         let userInfo;
         let redirect_uri;
+        let error_uri;
         if (req.headers.authorization) {
             // good for testing with postman, insomnia, etc. 
             // This assumes you have already gotten an access token by means from another source (i.e. insomnia OAuth2 login with same client id)
@@ -201,6 +208,7 @@ export const googleCallback = async(req, res) => {
                 }
 
                 redirect_uri = decodedState.redirect_uri;
+                error_uri = decodedState.error_uri || redirect_uri;
 
                 res.clearCookie("oauthstate", {
                     domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
@@ -211,6 +219,11 @@ export const googleCallback = async(req, res) => {
                 });
             } catch(err) {
                 logger.error(err)
+
+                if (error_uri) {
+                    return res.redirect(`${error_uri}?success=false&error=invalidState`);
+                }
+
                 return res.status(400).json({
                     message: "Missing or expired oauth state",
                 });
@@ -236,6 +249,9 @@ export const googleCallback = async(req, res) => {
             const accessToken = await response.json();
         
             if (!accessToken || accessToken?.error) {
+                if (error_uri) {
+                    return res.redirect(`${error_uri}?success=false&error=invalidCode`);
+                }
                 return res.status(400).json({
                     message: "Invalid code"
                 });
@@ -250,6 +266,9 @@ export const googleCallback = async(req, res) => {
             logger.debug(JSON.stringify(userInfo, undefined, 2));
 
             if (!userInfo.email_verified && !userInfo.verified_email) {
+                if (error_uri) {
+                    return res.redirect(`${error_uri}?success=false&error=emailNotVerified`);
+                }
                 return res.status(401).json({ message: 'Email not verified' });
             }
         
@@ -284,14 +303,14 @@ export const googleCallback = async(req, res) => {
         res.cookie('access_token', accessToken, {
             httpOnly: true,
             domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
-            secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production' && process.env.LOCAL_DEV !== "true",
             sameSite: 'strict',
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
         })
         
         if (redirect_uri) {
             logger.info("Redirecting to: " + redirect_uri);
-            return res.redirect(redirect_uri);
+            return res.redirect(`${redirect_uri}?success=true&message=successfulLogin&user=${JSON.stringify(user)}`);
         }
         return res.status(200).json({
             message: "User logged in successfully",
@@ -303,6 +322,7 @@ export const googleCallback = async(req, res) => {
     } catch(err) {
         logger.error(`${err}`);
 
+
         // if zoderror, return the error message
         if (err.name === "ZodError") {
             return res.status(400).json({
@@ -310,6 +330,7 @@ export const googleCallback = async(req, res) => {
                 error: err.errors
             });
         }
+
 
         res.status(500).json(err);
     }
