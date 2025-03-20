@@ -39,9 +39,36 @@ router.post("/email/signup", createEmailUser);
  * 
  * /google/login:
  *  get:
- *      summary: Redirect to Google OAuth login
- *      description: Redirects user to google login, calls /api/google/callback as the callback function. To authenticate in another fashion, you can create your own Google OAuth application (to get Client ID + Secret), retrieve an access token yourself with a program such as Postman/Insomnia with email and profile scopes set, then pass that to the callback function /google/callback.
+ *      summary: Provide to Google OAuth login
+ *      description: Returns URL to initiate GAuth flow. Clients should use this URL and redirect themselves to prevent CORS errors. To authenticate in another fashion, you can create your own Google OAuth application (to get Client ID + Secret), retrieve an access token yourself with a program such as Postman/Insomnia with email and profile scopes set, then pass that to the callback function /google/callback. Completing this auth flow will either return a JSON object of user data or redirect to the given redirect_uri with response fields as queries
  *      tags: [Auth]
+ *      parameters:
+ *          - in: query
+ *            name: redirect_uri
+ *            description: Redirect URI after successful login. If not included, will default to return JSON response of user data
+ *            schema:
+ *              type: string
+ *              
+ *          - in: query
+ *            name: error_uri
+ *            description: Redirect URI if error occurs. Defaults to redirect_uri if not provided
+ *            schema:
+ *              type: string
+ *              
+ *      responses:
+ *          200:
+ *             description: Google OAuth URL. An oauthstate cookie is also set for the callback to user later.
+ *             content: 
+ *              application/json:
+ *                 schema:
+ *                  type: object
+ *                  properties:
+ *                      message:
+ *                         type: string  
+ *                      url: 
+ *                         type: string
+ *         
+ * 
  */
 router.get("/google/login", googleAuth);
 
@@ -78,6 +105,10 @@ router.get("/google/login", googleAuth);
  *                                  example: Successfully authenticated
  *                              user:
  *                                  $ref: "#/components/schemas/User"
+ *          redirect:
+ *              description: Redirects to redirect_uri if provided with queries of response and sets auth cookie. redirect_uri?success=true&user=json_user_data&message=message
+ *          redirect_error:
+ *              description: Redirects to redirect_uri/error_uri if provided with queries of response. redirect_uri?success=false&error=error_message
  *          
  */
 router.get("/google/callback", googleCallback);
