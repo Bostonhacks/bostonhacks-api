@@ -222,3 +222,29 @@ export const deleteProject = async (req, res) => {
         return res.status(500).json({ message: "Internal server error", error: "" });
     }
 };
+
+export const getAllProjects = async (req, res) => {
+
+    const { year } = req.query;
+
+    try {
+        const projects = await prisma.project.findMany({
+            where: {
+                year: year ? parseInt(year) : new Date().getFullYear()
+            },
+            include: {
+                members: {
+                    select: {
+                        email: true,
+                        id: true
+                    }
+                }
+            }
+        });
+
+        return res.status(200).json(projects);
+    } catch (error) {
+        logger.error(`getAllProjects(): ${error}`);
+        return res.status(500).json({ message: "Internal server error", error: "" });
+    }
+}
