@@ -266,6 +266,212 @@ const swaggerDefinition ={
                     }
                 }
             },
+            "Project": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Project's unique ID",
+                        "readOnly": true,
+                        "example": "1245-vxsd-1241-1241",
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the project",
+                        "example": "Project X"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description of the project",
+                        "example": "This project aims to solve problem Y."
+                    },
+                    "repositoryUrl": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URL to the project's repository",
+                        "example": "https://github.com/user/project-x"
+                    },
+                    "technologies": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "description": "Technologies used in the project",
+                            "example": "JavaScript"
+                        }
+                    },
+                    "year": {
+                        "type": "integer",
+                        "description": "Year of the project",
+                        "example": 2025
+                    },
+                    "members": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/User"
+                        }
+                    },
+                    "track": {
+                        "type": "string",
+                        "description": "Track/category of the project",
+                        "example": "Web Development"
+                    },
+                    "demoUrl": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URL to the project's demo",
+                        "example": "https://project-x-demo.com"
+                    },
+                    "devPostUrl": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URL to the project's DevPost",
+                        "example": "https://devpost.com/software/project-x"
+                    },
+                    "teamName": {
+                        "type": "string",
+                        "description": "Team name for the project",
+                        "example": "Team Alpha"
+                    },
+                    "isWinner": {
+                        "type": "boolean",
+                        "description": "Whether the project is a winner",
+                        "example": false
+                    },
+                    "prizeWon": {
+                        "type": "string",
+                        "description": "Prize won by the project, if any",
+                        "example": "Best Web Development"
+                    },
+                    "placement": {
+                        "type": "integer",
+                        "description": "Placement of the project in the competition",
+                        "example": 2
+                    },
+                    "scores": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Score"
+                        }
+                    }
+                }
+            },
+            "Judge": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Judge's unique ID",
+                        "readOnly": true,
+                        "example": "1245-vxsd-1241-1241",
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "userId": {
+                        "type": "string",
+                        "description": "ID of the user who is a judge",
+                        "example": "1245-vxsd-1241-1241"
+                    },
+                    "accessCode": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "readOnly": true,
+                        "description": "Access code for the judge",
+                        "example": "judge123"
+                    },
+                    "tracks": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "description": "Tracks/categories the judge is assigned to",
+                            "example": "Web Development"
+                        }
+                    },
+                    "scores": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Score"
+                        }
+                    },
+                    "year": {
+                        "type": "integer",
+                        "description": "Year of the judging",
+                        "example": 2025
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the judge was created",
+                        "example": "2023-10-01T12:00:00Z"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the judge was last updated",
+                        "example": "2023-10-01T12:00:00Z"
+                    }
+                }
+
+            },
+            "Score": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Score's unique ID",
+                        "readOnly": true,
+                        "example": "1245-vxsd-1241-1241",
+                    },
+                    "judgeId": {
+                        "type": "string",
+                        "description": "ID of the judge who assigned the score",
+                        "example": "1245-vxsd-1241-1241"
+                    },
+                    "judge": {
+                        "$ref": "#/components/schemas/Judge"
+                    },
+                    "projectId": {
+                        "type": "string",
+                        "description": "ID of the project being scored",
+                        "example": "1245-vxsd-1241-1241"
+                    },
+                    "project": {
+                        "$ref": "#/components/schemas/Project"
+                    },
+                    "scoreData": {
+                        "type": "object",
+                        "description": "Score data given by the judge",
+                        "example": {
+                            "innovation": 8,
+                            "impact": 9,
+                            "presentation": 7
+                        }
+                    },
+                    "comments": {
+                        "type": "string",
+                        "description": "Comments provided by the judge",
+                        "example": "Great project, very innovative!"
+                    },
+                    "totalScore": {
+                        "type": "integer",
+                        "description": "Total score calculated from scoreodata",
+                        "readOnly": true,
+                        "example": 24
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the score was created",
+                        "example": "2023-10-01T12:00:00Z"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the score was last updated",
+                        "example": "2023-10-01T12:00:00Z"
+                    }
+                }
+            },
             "Error": {
                 "type": "object",
                 "properties": {

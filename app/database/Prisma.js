@@ -70,6 +70,7 @@ const scoreSchema = z.object({
     judgeId: z.string().uuid().optional().readonly(),
     scoreData: z.record(z.string(), z.number()),
     comments: z.string().nullable().optional(),
+    totalScore: z.number()
 
 });
 
@@ -108,7 +109,8 @@ const judgeSchema = z.object({
         z.object({
             create: z.any()
         })
-    ]).optional()
+    ]).optional(),
+    year: z.number().int().min(new Date().getFullYear -1).max(new Date().getFullYear() + 1)
 });
 
 
@@ -179,6 +181,7 @@ const judgeUpdateSchema = judgeSchema.omit({
     createdAt: true,
     updatedAt: true,
     tracks: true,
+    year: true
     // user: true
 }).partial().strict();
 

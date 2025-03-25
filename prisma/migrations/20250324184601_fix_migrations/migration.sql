@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Judge" ALTER COLUMN "year" DROP DEFAULT;
