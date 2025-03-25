@@ -560,7 +560,8 @@ export const createJudge = async (req, res) => {
                   tracks: req.body.tracks || ["all"],
                   user: {
                       connect: { id: req.body.userId }
-                  }
+                  },
+                  year: req.body.year || new Date().getFullYear()
               },
               include: {
                   user: {
@@ -591,6 +592,7 @@ export const createJudge = async (req, res) => {
               data: {
                   accessCode: accessCode,
                   tracks: req.body.tracks || ["all"],
+                  year: req.body.year || new Date().getFullYear(),
                   user: {
                       create: {
                           email: placeholderEmail,
@@ -611,7 +613,7 @@ export const createJudge = async (req, res) => {
                       }
                   }
               },
-              userRole: req.user.role || "USER"
+              userRole: req.user.role || "USER" // for prisma to know if we are allowed to create with these fields or not
           });
           
           return res.status(201).json({
