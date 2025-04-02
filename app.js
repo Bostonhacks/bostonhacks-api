@@ -18,6 +18,7 @@ import AuthRoutes from "./app/routes/Auth.routes.js";
 import ApplicationRoutes from "./app/routes/Application.routes.js";
 import ProjectRoutes from "./app/routes/Project.routes.js";
 import JudgingRoutes from "./app/routes/Judging.routes.js";
+import AdminRoutes from "./app/routes/Admin/Admin.routes.js";
 
 // set correct config file
 if (!process.env.NODE_ENV) {
@@ -73,6 +74,7 @@ app.use("/auth", AuthRoutes);
 app.use("/application", ApplicationRoutes)
 app.use("/project", ProjectRoutes);
 app.use("/judging", JudgingRoutes);
+app.use("/admin", AdminRoutes);
 
 // expose public folder
 // app.use(express.static(path.join(path.resolve(), 'public')));

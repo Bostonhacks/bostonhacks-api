@@ -1,5 +1,5 @@
 import express from "express"
-import { submitScore, getScore, getProjectsToJudge, getJudgingCriteria, getAllProjectScores, createJudge, attachJudgeToUser, updateScore, getAllJudges, createJudgingCriteria, getJudgesScores, getJudge } from "../controllers/Judging.controller.js";
+import { submitScore, getScore, getProjectsToJudge, getJudgingCriteria, getAllProjectScores, attachJudgeToUser, updateScore, getAllJudges, getJudgesScores, getJudge } from "../controllers/Judging.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { verifyAdmin } from "../middleware/admin.js";
 
@@ -36,9 +36,6 @@ const router = express.Router();
  *                          $ref: "#/components/schemas/JudgingCriteria"
  */
 router.get("/criteria", verifyToken, getJudgingCriteria);
-
-// admin route add later
-router.post("/criteria", verifyToken, verifyAdmin, createJudgingCriteria);
 
 /**
  * @openapi
@@ -234,9 +231,6 @@ router.get("/score/:scoreId", verifyToken, getScore);
 router.put("/score/:scoreId", verifyToken, updateScore);
 
 
-
-// move this to admin routes later
-router.post("/createjudge", verifyToken, verifyAdmin, createJudge);
 
 /**
  * @openapi

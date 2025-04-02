@@ -361,52 +361,7 @@ export const getJudgingCriteria = async (req, res) => {
     }
 };
 
-/**
- * Admin route to create judging criteria for a specific year
- */
-export const createJudgingCriteria = async (req, res) => {
-    try {
-        const { year, criteriaList } = req.body;
-        let { event } = req.body;
 
-        if (!event) {
-            event = 'BostonHacks'; // Default event
-        }
-
-        if (!year || !criteriaList) {
-            return res.status(400).json({ message: 'year and criteriaList are required' });
-        }
-
-        const existingCriteria = await prisma.judgingCriteria.findUnique({
-            where: {
-                year_event: {
-                    year: year,
-                    event: event
-                }
-            }
-        });
-
-        if (existingCriteria) {
-            return res.status(400).json({ message: 'Judging criteria for this year already exists' });
-        }
-
-        const newCriteria = await prisma.judgingCriteria.create({
-            data: {
-                year: year,
-                event: event,
-                criteriaList: criteriaList
-            }
-        });
-
-        return res.status(201).json(newCriteria);
-    } catch (error) {
-        logger.error('createJudgingCriteria(): Error creating judging criteria:', error);
-        return res.status(500).json({ 
-          message: "An error occurred while creating judging criteria",
-          error: error
-        });
-    }
-}
 
 /**
  * Get a judge's existing scores
@@ -537,96 +492,6 @@ export const getAllProjectScores = async (req, res) => {
     console.error('Error fetching all project scores:', error);
     return res.status(500).json({ error: 'An error occurred while fetching scores' });
   }
-};
-
-
-export const createJudge = async (req, res) => {
-    try {
-  
-        if (req.user.role !== "ADMIN") {
-          return res.status(403).json({ message: "You are not authorized to create a judge" });
-        }
-        
-
-        // generate random alphanumeric access code
-        const accessCode = Math.random().toString(36).substring(2, 10);
-
-        // if a userId is provided (meaning we want to automatically assign a judge)
-        if (req.body.userId) {
-          // Create judge with provided userId
-          const judge = await prisma.judge.create({
-              data: {
-                  accessCode: accessCode,
-                  tracks: req.body.tracks || ["all"],
-                  user: {
-                      connect: { id: req.body.userId }
-                  },
-                  year: req.body.year || new Date().getFullYear()
-              },
-              include: {
-                  user: {
-                      select: {
-                          id: true,
-                          email: true,
-                          firstName: true,
-                          lastName: true
-                      }
-                  }
-              },
-              userRole: req.user.role || "USER"
-          });
-          
-          return res.status(201).json({
-              message: "Judge created successfully",
-              judge
-          });
-      } else {
-          // if want to create judge object but dont attach a user yet
-          // Create a placeholder user since userId is required
-          // Generate a unique email for this placeholder user
-          const placeholderEmail = `judge-${accessCode}@placeholder.bostonhacks.org`;
-          console.log(placeholderEmail, accessCode);
-          
-          // Create both user and judge at once
-          const judge = await prisma.judge.create({
-              data: {
-                  accessCode: accessCode,
-                  tracks: req.body.tracks || ["all"],
-                  year: req.body.year || new Date().getFullYear(),
-                  user: {
-                      create: {
-                          email: placeholderEmail,
-                          firstName: "Judge",
-                          lastName: accessCode.toUpperCase(),
-                          role: "USER",
-                          password: accessCode, // keep this as is
-                      }
-                  }
-              },
-              include: {
-                  user: {
-                      select: {
-                          id: true,
-                          email: true,
-                          firstName: true,
-                          lastName: true
-                      }
-                  }
-              },
-              userRole: req.user.role || "USER" // for prisma to know if we are allowed to create with these fields or not
-          });
-          
-          return res.status(201).json({
-              message: "Judge created successfully with placeholder user",
-              judge,
-              accessCode: accessCode // Include access code in response
-          });
-      }
-
-    } catch (error) {
-        logger.error('createJudge(): Error creating judge:', error);
-        return res.status(500).json({ message: 'An error occurred while creating judge', error });
-    }
 };
 
 export const attachJudgeToUser = async (req, res) => {
