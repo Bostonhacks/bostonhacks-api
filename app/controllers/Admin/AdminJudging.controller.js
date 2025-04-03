@@ -296,6 +296,9 @@ export const createJudge = async (req, res) => {
         // generate random alphanumeric access code
         const accessCode = Math.random().toString(36).substring(2, 10);
 
+        // random string for placeholder email generation, 4-6 characters long
+        const randomString = Math.random().toString(36).substring(2, 6); // for placeholder email generation, 4-6 characters long
+
         // if a userId is provided (meaning we want to automatically assign a judge)
         if (req.body.userId) {
           // Create judge with provided userId
@@ -329,7 +332,7 @@ export const createJudge = async (req, res) => {
           // if want to create judge object but dont attach a user yet
           // Create a placeholder user since userId is required
           // Generate a unique email for this placeholder user
-          const placeholderEmail = `judge-${accessCode}@placeholder.bostonhacks.org`;
+          const placeholderEmail = `judge-${randomString}@placeholder.bostonhacks.org`;
           console.log(placeholderEmail, accessCode);
           
           // Create both user and judge at once
@@ -342,7 +345,7 @@ export const createJudge = async (req, res) => {
                       create: {
                           email: placeholderEmail,
                           firstName: "Judge",
-                          lastName: accessCode.toUpperCase(),
+                          lastName: randomString.toUpperCase(),
                           role: "USER",
                           password: accessCode, // keep this as is
                       }
