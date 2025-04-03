@@ -489,9 +489,17 @@ export const attachJudgeToUser = async (req, res) => {
             return res.status(404).json({ message: 'Judge not found' });
         }
 
+        // Ensure the judge is not already attached to a user
+        if (currentJudge?.user?.password !== access_code) {
+            logger.warn(`Attempted to attach judge with id ${currentJudge.id} to user ${userId} but the judge is already attached to another user.`);
+            return res.status(400).json({
+                message: "The provided access code has already been used"
+            });
+        }
+
         // to prevent accidental real account deletion, check if the user is a placeholder
         let tempUser = null;
-        if (currentJudge?.user?.password === access_code) {
+        if (currentJudge?.user?.password === access_code && currentJudge?.user?.firstName === "Judge") {
             tempUser = currentJudge.user;
         }
           

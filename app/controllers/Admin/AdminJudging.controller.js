@@ -347,7 +347,7 @@ export const createJudge = async (req, res) => {
                           firstName: "Judge",
                           lastName: randomString.toUpperCase(),
                           role: "USER",
-                          password: accessCode, // keep this as is
+                          password: accessCode, // keep this as is. attach judge functions checks if inputted access code is this value to ensure to delete correct temp user
                       }
                   }
               },
