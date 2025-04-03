@@ -1,5 +1,5 @@
 
 
-const verifyPath = async(req, res, next) => {
+// const verifyPath = async(req, res, next) => {
 
-}
+// }

@@ -62,6 +62,8 @@ export const getProjectsToJudge = async (req, res) => {
         return res.status(200).json(projectsWithScoringStatus);
     } catch (error) {
         logger.error('getProjectsToJudge(): Error fetching projects to judge:', error);
+
+        
         return res.status(500).json({ 
             message: 'An error occurred while fetching projects to judge',
             error: error
@@ -139,12 +141,21 @@ export const createJudgingCriteria = async (req, res) => {
               year: year,
               event: event,
               criteriaList: criteriaList
-          }
+          },
+          userRole: req.user.role || "USER" // ensure the user role is captured for logging/auditing purposes
       });
 
       return res.status(201).json(newCriteria);
   } catch (error) {
       logger.error('createJudgingCriteria(): Error creating judging criteria:', error);
+              
+      if (error.name === "ZodError") {
+        return res.status(400).json({
+          message: "Validation error",
+          error: error.errors
+        });
+      }
+      
       return res.status(500).json({ 
         message: "An error occurred while creating judging criteria",
         error: error
@@ -291,6 +302,7 @@ export const createJudge = async (req, res) => {
           const judge = await prisma.judge.create({
               data: {
                   accessCode: accessCode,
+                  year: req.body.year || new Date().getFullYear(), // fallback to current year if not provided
                   tracks: req.body.tracks || ["all"],
                   user: {
                       connect: { id: req.body.userId }
@@ -325,6 +337,7 @@ export const createJudge = async (req, res) => {
               data: {
                   accessCode: accessCode,
                   tracks: req.body.tracks || ["all"],
+                  year: req.body.year || new Date().getFullYear(), // fallback to current year if not provided
                   user: {
                       create: {
                           email: placeholderEmail,
@@ -406,7 +419,6 @@ export const attachJudgeToUser = async (req, res) => {
 
 
         // Attach the judge to the user
-        // eslint-disable-next-line no-unused-vars
         const result = await prisma.$transaction(async (tx) => {
           // 1. First update the judge to point to the new user
           const updatedJudge = await tx.judge.update({
@@ -451,4 +463,72 @@ export const attachJudgeToUser = async (req, res) => {
         logger.error('attachJudgeToUser(): Error attaching judge to user:', error);
         return res.status(500).json({ message: 'An error occurred while attaching judge to user. Possible that the current user is already attached to a Judge', error });
     }
+};
+
+export const getAllJudges = async (req, res) => {
+  try {
+    const { year } = req.query;
+
+    const judges = await prisma.judge.findMany({
+      where: {
+        year: {
+          equals: year ? parseInt(year) : new Date().getFullYear()
+        }
+      },
+      include: {
+        user: true
+      }
+
+    });
+
+    return res.status(200).json(judges);
+  } catch (error) {
+    logger.error('getAllJudges(): Error fetching all judges:', error);
+    return res.status(500).json({ message: 'An error occurred while fetching judges', error });
+  }
+}
+
+export const getJudge = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // get judge and include user and scores
+    const judge = await prisma.judge.findUnique({
+      where: { id: id },
+      select: {
+        id: true,
+        tracks: true,
+        year: true,
+        scores: {
+          include: {
+            project: {
+              select: {
+                id: true,
+                name: true,
+                description: true
+              }
+            }
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        }
+      }
+    });
+
+    if (!judge) {
+      return res.status(404).json({ message: 'Judge not found' });
+    }
+
+    return res.status(200).json(judge);
+  } catch (error) {
+    logger.error('getJudge(): Error fetching judge:', error);
+    return res.status(500).json({ message: 'An error occurred while fetching judge', error });
+  }
 }

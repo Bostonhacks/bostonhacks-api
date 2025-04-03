@@ -33,6 +33,7 @@ export const verifyToken = async(req, res, next) => {
 
 
         // if user is admin, check if route is /admin route, if not return 403
+        // actual auth check is in admin.js
         if (req.user.role !== "ADMIN" && req.originalUrl.startsWith("/admin")) {
             logger.warn(`User ${req.user.id}(${req.user.email}) tried to access admin route ${req.originalUrl}`);
             return res.status(403).json({
