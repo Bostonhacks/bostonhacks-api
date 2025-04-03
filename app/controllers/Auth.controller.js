@@ -293,6 +293,7 @@ export const googleCallback = async(req, res) => {
             { 
                 id: user.id,
                 email: user.email,
+                role: user.role || "USER", // ensure role is included in the token, default to USER if not set
             },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
@@ -379,7 +380,8 @@ export const emailLogin = async(req, res) => {
                 firstName: true,
                 lastName: true,
                 password: true, // must explicitly select password since omitted by default
-                authProvider: true
+                authProvider: true,
+                role: true
             }
         });
 
@@ -415,7 +417,8 @@ export const emailLogin = async(req, res) => {
         const accessToken = jwt.sign(
             { 
                 id: existingUser.id,
-                email: existingUser.email
+                email: existingUser.email,
+                role: existingUser.role || "USER" // ensure role is included in the token, default to USER if not set
             },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }

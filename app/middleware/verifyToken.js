@@ -18,17 +18,17 @@ export const verifyToken = async(req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        const user = await prisma.user.findUnique({
-            where: {
-                id: decoded.id
-            }
-        });
+        // const user = await prisma.user.findUnique({
+        //     where: {
+        //         id: decoded.id
+        //     }
+        // });
 
         req.user = {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            isJudge: !!user.judge
+            id: decoded.id,
+            email: decoded.email,
+            role: decoded.role,
+            // isJudge: !!user.judge
         }
 
 
