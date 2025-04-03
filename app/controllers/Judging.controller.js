@@ -451,48 +451,7 @@ export const getScore = async (req, res) => {
   }
 };
   
-/**
- * Get all scores for a project (admin only)
- */
-export const getAllProjectScores = async (req, res) => {
-  try {
-    const { projectId } = req.params;
 
-    // Only admins can see all scores
-    if (req.user.role !== 'ADMIN') {
-      return res.status(403).json({ message: 'Not authorized to view all scores' });
-    }
-
-    const scores = await prisma.score.findMany({
-      where: { projectId },
-      include: {
-        judge: {
-          include: {
-            user: {
-              select: { firstName: true, lastName: true }
-            }
-          }
-        }
-      }
-    });
-
-    // Calculate average score
-    let totalScore = 0;
-    scores.forEach(score => {
-      totalScore += score.totalScore;
-    });
-    const averageScore = scores.length > 0 ? totalScore / scores.length : 0;
-
-    return res.status(200).json({
-      scores,
-      averageScore,
-      numberOfJudges: scores.length
-    });
-  } catch (error) {
-    console.error('Error fetching all project scores:', error);
-    return res.status(500).json({ error: 'An error occurred while fetching scores' });
-  }
-};
 
 export const attachJudgeToUser = async (req, res) => {
     try {

@@ -10,7 +10,7 @@ import { z } from 'zod';
  * You can do this by adding it to the omit() method in the schema. Not all fields
  * present in Prisma schema are in the zod schema since those fields are not validated.
  * 
- * The Prisma client is extended with a new name 'zodValidation' and the query methods
+ * The Prisma client is extended with a new extension 'zodValidation' and the query methods
  * are overridden to validate the data before executing the query. 
  */
 
@@ -113,6 +113,36 @@ const judgeSchema = z.object({
     year: z.number().int().min(new Date().getFullYear -1).max(new Date().getFullYear() + 1)
 });
 
+const judgingCriteriaSchema = z.object({
+    id: z.string().uuid().optional().readonly(),
+    year: z.number().int().min(2023).max(new Date().getFullYear() + 1), // Year for which this criteria is valid
+    event: z.string().min(1, "Event name is required"), // e.g. "BostonHacks 2023"
+    criteriaList: z.record(
+        z.string().min(1, "Criterion name is required"),
+        z.object({
+            description: z.string().min(1, "Criterion description is required"),
+            weight: z.number()
+                .min(0, "Weight must be at least 0")
+                .max(10, "Weight cannot exceed 10")
+                .refine(val => !isNaN(val), "Weight must be a number")
+        })
+    ).refine(
+        // ensure the weights add to 10
+        (criteriaList) => {
+            // Calculate the sum of all weights
+            const totalWeight = Object.values(criteriaList)
+                .reduce((sum, criterion) => sum + criterion.weight, 0);
+            
+            // Check if the sum is close to 10 (allowing for small floating point errors)
+            return Math.abs(totalWeight - 10) < 0.001;
+        },
+        {
+            message: "The sum of all criteria weights must equal 10",
+            path: [] // This adds the error at the criteriaList level
+        }
+    )
+});
+
 
 
 /**
@@ -201,6 +231,15 @@ const adminJudgeCreateSchema = judgeSchema.omit({
 }).strict();
 const adminJudgeUpdateSchema = judgeSchema.partial().strict();
 
+const adminCriteriaCreateSchema = judgingCriteriaSchema.omit({
+    id: true, // Don't allow setting the ID when creating a new criteria
+}).strict();
+
+const adminCriteriaUpdateSchema = judgingCriteriaSchema.partial().strict();
+
+/**
+ * -------------- Prisma Client Creation ---------------
+ */
 // Create Prisma client with extensions. This will use zod schemas to validate data before executing queries
 const prismaInstance = new PrismaClient({
     omit: {
@@ -213,6 +252,7 @@ const prismaInstance = new PrismaClient({
   query: {
     user: {
       async create({ args, query }) {
+        // upon a creation, check the userRole (which needs to be passed in as userRole when performing a query)
         const role = args.userRole || 'USER';
 
         delete args.userRole;
@@ -383,6 +423,43 @@ const prismaInstance = new PrismaClient({
             return query(args);
     
         },
+    },
+
+    judgingCriteria: {
+        
+        async create({ args, query }) {
+            const role = args.userRole || 'USER';
+
+            delete args.userRole;
+            // Validate the data against the schema
+            if (role === 'ADMIN') {
+                args.data = adminCriteriaCreateSchema.parse(args.data);
+            } else {
+                args.data = judgingCriteriaSchema.parse(args.data);
+            }
+            return query(args);
+        },
+        async update({ args, query }) {
+            const role = args.userRole || 'USER';
+
+            delete args.userRole;
+            // Validate the update data against the partial schema
+            if (role === 'ADMIN') {
+                args.data = adminCriteriaUpdateSchema.parse(args.data);
+            } else {
+                args.data = judgingCriteriaSchema.parse(args.data);
+            }
+            return query(args);
+        },
+        async upsert({ args, query }) {
+            const role = args.userRole || 'USER';
+
+            delete args.userRole;
+            // Validate both create and update data
+            args.create = adminCriteriaCreateSchema.parse(args.create);
+            args.update = adminCriteriaUpdateSchema.parse(args.update);
+            return query(args);
+        }
     }
 
 

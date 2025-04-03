@@ -82,7 +82,10 @@ app.use("/admin", AdminRoutes);
 // expose swagger docs
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc({
   swaggerDefinition,
-  apis: ["./app/routes/*.js"],
+  apis: [
+    "./app/routes/*.js",
+    "./app/routes/Admin/*.js", // include admin routes for swagger
+  ],
 })))
 
 app.get("/", (req, res) => {

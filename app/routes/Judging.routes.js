@@ -1,7 +1,6 @@
 import express from "express"
-import { submitScore, getScore, getProjectsToJudge, getJudgingCriteria, getAllProjectScores, attachJudgeToUser, updateScore, getAllJudges, getJudgesScores, getJudge } from "../controllers/Judging.controller.js";
+import { submitScore, getScore, getProjectsToJudge, getJudgingCriteria, attachJudgeToUser, updateScore, getAllJudges, getJudgesScores, getJudge } from "../controllers/Judging.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
-import { verifyAdmin } from "../middleware/admin.js";
 
 const router = express.Router();
 
@@ -238,7 +237,7 @@ router.put("/score/:scoreId", verifyToken, updateScore);
  * /judging/judges:
  *  get:
  *      summary: Get current year's judges
- *      description: Gets judging criteria which judges can score on
+ *      description: Gets current year's judges. Returns truncated user objects within
  *      tags: [Judging]
  *      parameters:
  *          - in: cookie
@@ -293,10 +292,51 @@ router.get("/judges", verifyToken, getAllJudges);
  */
 router.get("/judges/:id", verifyToken, getJudge);
 
-
-// verify admin too, not just token. move this to admin functions only
-router.get("/scores/:projectId", verifyToken, getAllProjectScores);
-
+/**
+ * @openapi
+ * 
+ * /judging/attachjudge:
+ *  post:
+ *      summary: Submit a score for a project
+ *      description: Submit a score for a project. User must be attached to a judge object.
+ *      tags: [Judging]
+ *      parameters:
+ *          - in: cookie
+ *            name: access_token
+ *            description: Login token
+ *            required: true
+ *            schema:
+ *              type: string
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                     type: object
+ *                     properties:
+ *                        userId:
+ *                           type: string
+ *                           description: userId of user to attach judge to
+ *                        access_code:
+ *                           type: string
+ *                           description: Access code given on judge creation
+ * 
+ *
+ *      responses:
+ *          200:
+ *              description: Project score submitted successfully. Returns judge with truncated user object
+ *              content: 
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                             message:
+ *                              type: string
+ *                              example: "Judge attached to user successfully"
+ *                             judge:
+ *                              type: object
+ *                              $ref: "#/components/schemas/Judge"
+ */
 router.post("/attachjudge", verifyToken, attachJudgeToUser);
 
 
