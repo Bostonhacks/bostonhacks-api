@@ -24,7 +24,7 @@ if (!process.env.NODE_ENV) {
   logger.warn("No NODE_ENV set. Defaulting to development")
   process.env.NODE_ENV = 'development';
 }
-dotenv.config({ path: path.join(path.resolve(), `.env.${process.env.NODE_ENV}`)}); 
+dotenv.config({ path: path.join(path.resolve(), `.env.${process.env.NODE_ENV}`) });
 
 // express app
 const app = express();
@@ -45,7 +45,7 @@ const prodOrigins = [
 // middlewares
 app.use(express.json());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
+  origin: process.env.NODE_ENV === 'production'
     ? prodOrigins.filter(Boolean) // filter out any null values
     : devOrigins,
   credentials: true
@@ -88,7 +88,7 @@ app.get("/", (req, res) => {
 });
 
 // keep this last. this is redirects due to 404
-app.get("*", (req, res)=> {
+app.get("*", (req, res) => {
   res.status(404).json({
     error: "Route not found"
   })
