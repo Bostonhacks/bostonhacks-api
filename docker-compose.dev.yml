@@ -3,15 +3,23 @@ services:
     build:
       context: .
     env_file:
-      - .env.production
+      - .env.development
     ports:
       - 8000:8000
-    # command: sh -c "npm run migrate:dev && npx nodemon -L server.js"
-    command: sh -c "npm run build:prod && node server.js"
+    command: sh -c "npx prisma migrate deploy && npx prisma generate & npx nodemon -L server.js"
+    # command: sh -c "npm run build:prod && node server.js"
 
     depends_on:
       db:
         condition: service_healthy
+
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /usr/src/app
+        - action: rebuild
+          path: package.json
 
     # volumes:
     #   - .:/usr/src/app
@@ -42,11 +50,11 @@ services:
     ports: 
       - 5555:5555
     env_file:
-      - .env.production
+      - .env.development
     depends_on:
         db:
           condition: service_healthy
-    command: sh -c "npm run prismastudio:prod"
+    command: sh -c "npm run prismastudio:dev"
     
 
 volumes:
