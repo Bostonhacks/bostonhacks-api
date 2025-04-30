@@ -118,7 +118,7 @@ export const submitScore = async(req, res) => {
           });
         }
   
-        return res.status(200).json({ 
+        return res.status(201).json({ 
           message: 'Score submitted successfully', 
           score,
           totalScore
@@ -138,6 +138,9 @@ export const submitScore = async(req, res) => {
     }
 };
 
+/**
+ * Update a score for a project
+ */
 export const updateScore = async(req, res) => {
   try {
     const { scoreData } = req.body;
@@ -245,7 +248,7 @@ export const updateScore = async(req, res) => {
     });
 
     return res.status(200).json({ 
-      message: 'Score submitted successfully', 
+      message: 'Score updated successfully', 
       updatedScore
     });
 } catch (error) {
@@ -327,9 +330,9 @@ export const getProjectsToJudge = async (req, res) => {
     }
 };
   
-  /**
-   * Get the current judging criteria for a specific year
-   */
+/**
+ * Get the current judging criteria for a specific year
+ */
 export const getJudgingCriteria = async (req, res) => {
     try {
         const { year } = req.query;
@@ -357,47 +360,63 @@ export const getJudgingCriteria = async (req, res) => {
         });
     }
 };
+
+
+
+/**
+ * Get a judge's existing scores
+ */
+export const getJudgesScores = async (req, res) => {
+  try {
+    const { judgeId } = req.query;
+    if (!judgeId) {
+      return res.status(400).json({ message: 'judgeId query parameter is required' });
+    }
+
+    const judge = await prisma.judge.findUnique({
+      where: { id: judgeId },
+      include: {
+        user: {
+          select: {
+            id: true,
+          }
+        }
+      }
+    });
+
+    if (judge?.user?.id !== req.user.id) {
+      return res.status(403).json({ message: 'You are not authorized to view this judge\'s scores' });
+    }
+
+    const scores = await prisma.score.findMany({
+      where: { judgeId },
+      include: {
+        project: {
+          select: {
+            id: true,
+            name: true,
+            description: true
+          }
+        }
+      }
+    });
+
+    return res.status(200).json(scores);
+  } catch (error) {
+    logger.error('getJudgesScores(): Error fetching judge\'s scores:', error);
+    return res.status(500).json({ 
+      message: 'An error occurred while fetching judge\'s scores',
+      error: error
+    });
+  }
+}
   
 /**
- * Get a judge's existing score for a project
+ * Get a specific score
  */
 export const getScore = async (req, res) => {
-  // try {
-  //   const { projectId } = req.params;
-
-  //   // Check if user is a judge
-  //   const judge = await prisma.judge.findUnique({
-  //     where: { userId: req.user.id }
-  //   });
-
-  //   if (!judge) {
-  //     return res.status(403).json({ message: 'You are not authorized to judge projects' });
-  //   }
-
-  //   // Get the score if it exists
-  //   const score = await prisma.score.findUnique({
-  //     where: {
-  //       judgeId_projectId: {
-  //         judgeId: judge.id,
-  //         projectId
-  //       }
-  //     }
-  //   });
-
-  //   if (!score) {
-  //     return res.status(404).json({ message: 'Score not found' });
-  //   }
-
-  //   return res.status(200).json(score);
-  // } catch (error) {
-  //   console.error('getProjectScore(): Error fetching project score:', error);
-  //   return res.status(500).json({ 
-  //     message: 'An error occurred while fetching project score',
-  //     error: error
-  //   });
-  // }
   try {
-    const { scoreId } = req.params;
+    const scoreId = req.params.scoreId;
 
     // Check if user is a judge
     const judge = await prisma.judge.findUnique({
@@ -409,12 +428,7 @@ export const getScore = async (req, res) => {
     }
 
     if (!scoreId) {
-      const scores = await prisma.score.findMany({
-        where: {
-          judgeId: judge.id
-        }
-      });
-      return res.status(200).json(scores);
+      return res.status(400).json({ message: 'scoreId url parameter is required' });
     }
     // Get the score if it exists
     const score = await prisma.score.findUnique({
@@ -437,135 +451,7 @@ export const getScore = async (req, res) => {
   }
 };
   
-/**
- * Get all scores for a project (admin only)
- */
-export const getAllProjectScores = async (req, res) => {
-  try {
-    const { projectId } = req.params;
 
-    // Only admins can see all scores
-    if (req.user.role !== 'ADMIN') {
-      return res.status(403).json({ message: 'Not authorized to view all scores' });
-    }
-
-    const scores = await prisma.score.findMany({
-      where: { projectId },
-      include: {
-        judge: {
-          include: {
-            user: {
-              select: { firstName: true, lastName: true }
-            }
-          }
-        }
-      }
-    });
-
-    // Calculate average score
-    let totalScore = 0;
-    scores.forEach(score => {
-      totalScore += score.totalScore;
-    });
-    const averageScore = scores.length > 0 ? totalScore / scores.length : 0;
-
-    return res.status(200).json({
-      scores,
-      averageScore,
-      numberOfJudges: scores.length
-    });
-  } catch (error) {
-    console.error('Error fetching all project scores:', error);
-    return res.status(500).json({ error: 'An error occurred while fetching scores' });
-  }
-};
-
-export const createJudge = async (req, res) => {
-    try {
-  
-        if (req.user.role !== "ADMIN") {
-          return res.status(403).json({ message: "You are not authorized to create a judge" });
-        }
-        
-
-        // generate random alphanumeric access code
-        const accessCode = Math.random().toString(36).substring(2, 10);
-
-        // if a userId is provided (meaning we want to automatically assign a judge)
-        if (req.body.userId) {
-          // Create judge with provided userId
-          const judge = await prisma.judge.create({
-              data: {
-                  accessCode: accessCode,
-                  tracks: req.body.tracks || ["all"],
-                  user: {
-                      connect: { id: req.body.userId }
-                  }
-              },
-              include: {
-                  user: {
-                      select: {
-                          id: true,
-                          email: true,
-                          firstName: true,
-                          lastName: true
-                      }
-                  }
-              },
-              userRole: req.user.role || "USER"
-          });
-          
-          return res.status(201).json({
-              message: "Judge created successfully",
-              judge
-          });
-      } else {
-          // if want to create judge object but dont attach a user yet
-          // Create a placeholder user since userId is required
-          // Generate a unique email for this placeholder user
-          const placeholderEmail = `judge-${accessCode}@placeholder.bostonhacks.org`;
-          console.log(placeholderEmail, accessCode);
-          
-          // Create both user and judge at once
-          const judge = await prisma.judge.create({
-              data: {
-                  accessCode: accessCode,
-                  tracks: req.body.tracks || ["all"],
-                  user: {
-                      create: {
-                          email: placeholderEmail,
-                          firstName: "Judge",
-                          lastName: accessCode.toUpperCase(),
-                          role: "USER",
-                          password: accessCode, // keep this as is
-                      }
-                  }
-              },
-              include: {
-                  user: {
-                      select: {
-                          id: true,
-                          email: true,
-                          firstName: true,
-                          lastName: true
-                      }
-                  }
-              },
-              userRole: req.user.role || "USER"
-          });
-          
-          return res.status(201).json({
-              message: "Judge created successfully with placeholder user",
-              judge,
-              accessCode: accessCode // Include access code in response
-          });
-      }
-
-    } catch (error) {
-        logger.error('createJudge(): Error creating judge:', error);
-        return res.status(500).json({ message: 'An error occurred while creating judge', error });
-    }
-};
 
 export const attachJudgeToUser = async (req, res) => {
     try {
@@ -603,9 +489,17 @@ export const attachJudgeToUser = async (req, res) => {
             return res.status(404).json({ message: 'Judge not found' });
         }
 
+        // Ensure the judge is not already attached to a user
+        if (currentJudge?.user?.password !== access_code) {
+            logger.warn(`Attempted to attach judge with id ${currentJudge.id} to user ${userId} but the judge is already attached to another user.`);
+            return res.status(400).json({
+                message: "The provided access code has already been used"
+            });
+        }
+
         // to prevent accidental real account deletion, check if the user is a placeholder
         let tempUser = null;
-        if (currentJudge?.user?.password === access_code) {
+        if (currentJudge?.user?.password === access_code && currentJudge?.user?.firstName === "Judge") {
             tempUser = currentJudge.user;
         }
           
@@ -656,4 +550,85 @@ export const attachJudgeToUser = async (req, res) => {
         logger.error('attachJudgeToUser(): Error attaching judge to user:', error);
         return res.status(500).json({ message: 'An error occurred while attaching judge to user. Possible that the current user is already attached to a Judge', error });
     }
+}
+
+
+export const getAllJudges = async (req, res) => {
+  try {
+    const { year } = req.query;
+
+    const judges = await prisma.judge.findMany({
+      where: {
+        year: {
+          equals: year ? parseInt(year) : new Date().getFullYear()
+        }
+      },
+      select: {
+        id: true,
+        tracks: true,
+        year: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        }
+
+      }
+
+    });
+
+    return res.status(200).json(judges);
+  } catch (error) {
+    logger.error('getAllJudges(): Error fetching all judges:', error);
+    return res.status(500).json({ message: 'An error occurred while fetching judges', error });
+  }
+}
+
+export const getJudge = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // get judge and include user and scores
+    const judge = await prisma.judge.findUnique({
+      where: { id: id },
+      select: {
+        id: true,
+        tracks: true,
+        year: true,
+        scores: {
+          include: {
+            project: {
+              select: {
+                id: true,
+                name: true,
+                description: true
+              }
+            }
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        }
+      }
+    });
+
+    if (!judge) {
+      return res.status(404).json({ message: 'Judge not found' });
+    }
+
+    return res.status(200).json(judge);
+  } catch (error) {
+    logger.error('getJudge(): Error fetching judge:', error);
+    return res.status(500).json({ message: 'An error occurred while fetching judge', error });
+  }
 }

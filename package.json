@@ -31,9 +31,11 @@
     "dbpush": "dotenv -e .env.development -- npx prisma db push",
     "build:dev": "npm run migrate:dev && npx prisma generate",
     "build:prod": "npm run migrate:prod && npx prisma generate",
+
     "docker:test": "docker compose -f docker-compose.test.yml build && docker-compose -f docker-compose.test.yml run test",
-    "docker:ext": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:ext": "docker compose -f docker-compose.dev.yml up --build -d",
     "exitdocker:ext": "docker compose -f docker-compose.dev.yml down",
+
     "sql:dev": "docker compose -f docker-compose.dev.yml up --build db -d && npm run dbpush",
     "exitsql:dev": "docker compose -f docker-compose.dev.yml down",
     "cleansql:dev": "docker compose -f docker-compose.dev.yml down -v",

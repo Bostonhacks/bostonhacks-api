@@ -215,7 +215,7 @@ export const googleCallback = async(req, res) => {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: "lax", // needed for redirect
-                    maxAge: 5 * 60 * 1000 // 5 minutes
+                    // maxAge: 5 * 60 * 1000 // 5 minutes
                 });
             } catch(err) {
                 logger.error(err)
@@ -293,6 +293,7 @@ export const googleCallback = async(req, res) => {
             { 
                 id: user.id,
                 email: user.email,
+                role: user.role || "USER", // ensure role is included in the token, default to USER if not set
             },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
@@ -346,7 +347,7 @@ export const logout = async(req, res) => {
             domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            // maxAge: 24 * 60 * 60 * 1000 // 24 hours
         }).status(200).json({
             message: "User logged out successfully",
         });
@@ -379,7 +380,8 @@ export const emailLogin = async(req, res) => {
                 firstName: true,
                 lastName: true,
                 password: true, // must explicitly select password since omitted by default
-                authProvider: true
+                authProvider: true,
+                role: true
             }
         });
 
@@ -415,7 +417,8 @@ export const emailLogin = async(req, res) => {
         const accessToken = jwt.sign(
             { 
                 id: existingUser.id,
-                email: existingUser.email
+                email: existingUser.email,
+                role: existingUser.role || "USER" // ensure role is included in the token, default to USER if not set
             },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }

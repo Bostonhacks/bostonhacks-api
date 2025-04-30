@@ -76,6 +76,7 @@ model Judge {
     accessCode      String    @unique// Gives them access to judge for this year
     tracks          String[]  @default(["all"]) // Tracks they are responsible for judging
     scores          Score[]   // Scores they've given
+    year            Int?      
     createdAt       DateTime  @default(now())
     updatedAt       DateTime  @updatedAt
 }

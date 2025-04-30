@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Judge" ADD COLUMN     "year" INTEGER DEFAULT 2025;
