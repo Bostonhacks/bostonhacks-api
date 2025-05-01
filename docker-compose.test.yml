@@ -16,6 +16,8 @@ services:
   test-app:
     build:
       context: .
+    env_file:
+      - .env.test
     environment:
       - NODE_ENV=test
       - DATABASE_URL=postgresql://postgres:bostonhacksapitest@test-db:5432/bostonhacksapitest
