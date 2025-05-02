@@ -19,10 +19,6 @@ services:
       context: .
     env_file:
       - .env.test
-    environment:
-      - NODE_ENV=test
-      - DATABASE_URL=postgresql://postgres:bostonhacksapitest@test-db:5432/bostonhacksapitest
-      - DATABASE_DIRECT_URL=postgresql://postgres:bostonhacksapitest@test-db:5432/bostonhacksapitest
     depends_on:
       test-db:
         condition: service_healthy

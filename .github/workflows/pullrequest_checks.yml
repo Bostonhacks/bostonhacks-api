@@ -34,6 +34,11 @@ jobs:
           echo "GOOGLE_ACCESS_TOKEN_URL=${{ vars.GOOGLE_ACCESS_TOKEN_URL }}" >> .env.test
           echo "GOOGLE_CALLBACK_URL=${{ vars.GOOGLE_CALLBACK_URL }}" >> .env.test
           echo "GOOGLE_TOKEN_INFO_URL=${{ vars.GOOGLE_TOKEN_INFO_URL }}" >> .env.test
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.test
+          echo "DATABASE_DIRECT_URL=${{ secrets.DATABASE_DIRECT_URL }}" >> .env.test
+          echo "EMAIL_SIGNUP=true" >> .env.test
+          echo "LOG_LEVEL=debug" >> .env.test
+          echo "PORT=8000" >> .env.test
 
 
       
