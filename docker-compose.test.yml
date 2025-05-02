@@ -22,7 +22,9 @@ services:
     environment:
       - NODE_ENV=test
       - DATABASE_URL=postgresql://postgres:bostonhacksapitest@test-db:5432/bostonhacksapitest
+      - DATABASE_DIRECT_URL=postgresql://postgres:bostonhacksapitest@test-db:5432/bostonhacksapitest
     depends_on:
       test-db:
         condition: service_healthy
-    command: sh -c "npx eslint . && jest --testTimeout=5000 --detectOpenHandles"    # No volume needed for test app
+    # command: sh -c "npm install && npx eslint . && jest --testTimeout=5000 --detectOpenHandles"    # No volume needed for test app
+    command: sh -c "npm install && npx eslint . && npx prisma migrate deploy && npx prisma generate && npm test"
