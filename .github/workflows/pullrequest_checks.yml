@@ -9,32 +9,36 @@ jobs:
     runs-on: ubuntu-latest
     environment: Test
     
-    env:
-      NODE_ENV: test
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
     
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Check code style
-        run: npx eslint .
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 20
+      #
+      # - name: Install dependencies
+      #   run: npm ci
+      #
+      # - name: Check code style
+      #   run: npx eslint .
+      - name: Create .env.test file
+        run: |
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.test
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.test
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env.test
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env.test
+          echo "GOOGLE_OAUTH_URL=${{ vars.GOOGLE_OAUTH_URL }}" >> .env.test
+          echo "GOOGLE_ACCESS_TOKEN_URL=${{ vars.GOOGLE_ACCESS_TOKEN_URL }}" >> .env.test
+          echo "GOOGLE_CALLBACK_URL=${{ vars.GOOGLE_CALLBACK_URL }}" >> .env.test
+          echo "GOOGLE_TOKEN_INFO_URL=${{ vars.GOOGLE_TOKEN_INFO_URL }}" >> .env.test
+
+
       
-      - name: Run Docker Compose for tests
+      - name: Run Docker Compose for tests and linting
         env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_OAUTH_URL: ${{ vars.GOOGLE_OAUTH_URL }}
-          GOOGLE_ACCESS_TOKEN_URL: ${{ vars.GOOGLE_ACCESS_TOKEN_URL }}
-          GOOGLE_CALLBACK_URL: ${{ vars.GOOGLE_CALLBACK_URL }}
-          GOOGLE_TOKEN_INFO_URL: ${{ vars.GOOGLE_TOKEN_INFO_URL }} 
+          NODE_ENV: test
         run: npm run docker:test
     
