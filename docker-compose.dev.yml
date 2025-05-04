@@ -6,7 +6,7 @@ services:
       - .env.development
     ports:
       - 8000:8000
-    command: sh -c "npx prisma migrate deploy && npx prisma generate & npx nodemon -L server.js"
+    command: sh -c "npx prisma migrate dev && npx prisma generate & npx nodemon -L server.js"
     # command: sh -c "npm run build:prod && node server.js"
 
     depends_on:
