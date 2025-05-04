@@ -263,7 +263,7 @@ export const googleCallback = async (req, res) => {
       }).then(res => res.json());
 
 
-      logger.debug(JSON.stringify(userInfo, undefined, 2));
+      // logger.debug(JSON.stringify(userInfo, undefined, 2));
 
       if (!userInfo.email_verified && !userInfo.verified_email) {
         if (error_uri) {
@@ -352,7 +352,7 @@ export const logout = async (req, res) => {
       message: "User logged out successfully",
     });
   } catch (err) {
-    logger.error(`Error logging out user: ${err}`);
+    logger.error(`Error logging out user: ${err.message}`);
     res.status(500).json({
       message: "Error logging out user"
     })
@@ -464,7 +464,7 @@ export const createEmailUser = async (req, res) => {
         message: "Email, password, firstName, and lastName are required"
       });
     }
-    logger.debug(JSON.stringify(req.body, undefined, 2));
+    // logger.debug(JSON.stringify(req.body, undefined, 2));
 
     // Email format validation
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;

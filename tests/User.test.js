@@ -32,6 +32,8 @@ describe("User tests", () => {
     }
 
     user = signInResponse.body.user;
+    // console.log(user);
+    // console.log(signInResponse.headers['set-cookie']);
 
     if (user.email !== createUser.email) {
       throw new Error("Failed to get user data");
@@ -39,8 +41,10 @@ describe("User tests", () => {
   });
 
   describe("GET /user/me", () => {
+    console.log(agent);
     it("Should return authenticated user data", async () => {
       const response = await agent.get("/user/me");
+      // console.log(response);
 
       expect(response.statusCode).toBe(200);
       expect(response.body.id).toBe(user.id);
