@@ -41,7 +41,7 @@ describe("User tests", () => {
   });
 
   describe("GET /user/me", () => {
-    console.log(agent);
+    // console.log(agent);
     it("Should return authenticated user data", async () => {
       const response = await agent.get("/user/me");
       // console.log(response);
