@@ -13,21 +13,28 @@ The preferred way to develop since it spins up all components for you in one com
    1. All code must work in the Docker container since our work deploys with Docker containers.
    2. Ensure no other programs are using ports 8000. If you run into issues, try closing containers first.
    3. Create a `.env.development` file as specified in `.env.example`
-   4. If you changed schemas, run `npm run build:dev` to create a migration. If you don't do this, then your changes will not be reflected in the dev environment.
+      - For help with Google Auth, refer to the [Google Cloud App Setup](/docs/googleauth.md#google-cloud-app-setup) section
+   4. If you changed schemas in `prisma/schema.prisma`, run `npm run build:dev` to create a migration. If you don't do this, then your changes will not be reflected in the dev environment.
    5. Run `npm run docker:dev` to start the docker container
       1. `npm run exitdocker:dev` to exit containers
       2. `npm run cleandocker:dev` to exit containers and remove created volumes
       3. Sometimes you might have to docker-compose down (exitdocker) to start again.
       4. Refer to [Docker](#docker) section to understand more
+   6. Run tests with `npm run docker:test`
+      - This uses the `docker-compose.test.yml` file.
 
 ## Local Machine Development
+
+*Warning: This was not tested extensively unlike using Docker for development*
+
+Optional: Docker (for using SQL Container)
 
    1. Look at `.env.example` to create your own `.env.development` file
    2. Run `npm run sql:dev` to start a local db with Docker.
       - You can also choose to spin up your own Postgres instance and change the .env file to reflect that endpoint.
    3. Run `npm run build:dev` to run SQL migrations and build the Prisma Client
+      - This should not ask you to create a new migration, just to migrate changes to your blank database.
    4. `npm run dev` to run the server locally
-      - Must have `.env.development` file
    5. `npm run test:dev` to run local tests (must close dev server first)
    6. Run `npm run exitsql:dev` to exit Docker SQL container. Your data will persist even after closing the container.
       1. Optionally run `npm run cleansql:dev` to exit the SQL container and delete persistent storage **warning: this deletes all your persistent db data stored locally**.
@@ -64,6 +71,10 @@ Zod is used for input validation. Some controllers require more control over val
 # Deployment
 
 Deployment can be done either direct code deploy or Dockerized. The Dockerfile along with the root directory is all you need to give a hosting service to start the server. Currently, the server is running as a Docker container in a cloud hosting provider.
+
+On a commit to main, the code is automatically uploaded via Docker containers to a cloud hosting provider such as Azure, AWS, or Render.
+
+- If `prisma/migrations` is changed (meaning you should have run the migrate dev command), then the migrations are automatically deployed with `prisma migrate deploy` to the cloud database provider via a GitHub action.
 
 ## CI/CD
 
@@ -143,4 +154,3 @@ docs for more detail on building and pushing.
 -
 
 </del>
-

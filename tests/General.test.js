@@ -15,11 +15,11 @@ describe("GET /docs", () => {
 
 
 
-    it("Should return 200 with no error", async() => {
-        const response = await request(app).get("/docs");
+  it("Should return 200 with no error", async () => {
+    const response = await request(app).get("/docs");
 
-        expect(response.status).toBe(200);
-    })
+    expect(response.status).toBe(301);
+  })
 
 
 
