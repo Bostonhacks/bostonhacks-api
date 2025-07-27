@@ -24,6 +24,7 @@
     "dev": "npx dotenv -e .env.development -- nodemon server.js",
     "test": "npx eslint . && jest --no-cache --testTimeout=5000 --detectOpenHandles",
     "exitdocker:dev": "docker compose -f docker-compose.dev.yml down",
+    "cleandocker:dev": "docker compose -f docker-compose.dev.yml down -v",
     "prod": "npx dotenv -e .env.production -- node server.js",
     "test:dev": "npx eslint . && dotenv -e .env.development -- jest --testTimeout=5000 --detectOpenHandles",
     "migrate:dev": "npx dotenv -e .env.development -- npx prisma migrate dev",
