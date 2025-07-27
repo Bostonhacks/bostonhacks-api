@@ -1,5 +1,6 @@
 services:
   server:
+    # network_mode: host
     build:
       context: .
     env_file:
@@ -45,6 +46,7 @@ services:
       retries: 5
 
   prisma:
+    # network_mode: host
     build:
       context: .
     ports: 

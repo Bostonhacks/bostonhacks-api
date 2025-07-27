@@ -11,7 +11,7 @@ const router = express.Router();
 /**
  * @openapi
  * 
- * /email/signup:
+ * /auth/email/signup:
  *  post:
  *      summary: NOT IMPLEMENTED IN PRODUCTION. Signs up user via email
  *      description: Not implemented in production. This means you can use this locally, but the production deployment will not have this route implemented yet. Please use this freely to work on development, but handle user flows with Google Auth.
@@ -37,7 +37,7 @@ router.post("/email/signup", createEmailUser);
 /**
  * @openapi
  * 
- * /google/login:
+ * /auth/google/login:
  *  get:
  *      summary: Provide to Google OAuth login
  *      description: Returns URL to initiate GAuth flow. Clients should use this URL and redirect themselves to prevent CORS errors. To authenticate in another fashion, you can create your own Google OAuth application (to get Client ID + Secret), retrieve an access token yourself with a program such as Postman/Insomnia with email and profile scopes set, then pass that to the callback function /google/callback. Completing this auth flow will either return a JSON object of user data or redirect to the given redirect_uri with response fields as queries
@@ -75,7 +75,7 @@ router.get("/google/login", googleAuth);
 /**
  * @openapi
  * 
- * /google/callback:
+ * /auth/google/callback:
  *  get:
  *      summary: Google oauth callback
  *      description: This gets called implicitly by Google OAuth servers. You can also get your own access token from Google and send that in the authorization header. Use the Authorization header if you fetched your own access code, otherwise the code query will be used.
@@ -121,7 +121,7 @@ router.post("/logout", logout);
 /**
  * @openapi
  * 
- * /email/login:
+ * /auth/email/login:
  *  post:
  *      summary: Logs in user via email
  *      description: 
