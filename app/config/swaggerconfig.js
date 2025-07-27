@@ -228,7 +228,6 @@ const swaggerDefinition = {
           "resumeUrl": {
             "type": "string",
             "description": "File name of uploaded resume. Use the get resume routes to get a temporary access URL.",
-            "writeOnly": true,
           }
         }
       },
