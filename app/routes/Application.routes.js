@@ -4,6 +4,7 @@ import {
   getUserApplications,
   updateApplication,
   getResumeUrl,
+  deleteResume,
 } from "../controllers/Application.controller.js";
 import express from "express";
 import { verifyToken } from "../middleware/verifyToken.js";
@@ -322,32 +323,32 @@ router.get("/:id/resume/url", verifyToken, getResumeUrl);
 // */
 // router.post("/:id/resume", verifyToken, upload.single('resume'), uploadResume);
 
-///**
-// * @openapi
-// * 
-// * /application/{id}/resume:
-// *  delete:
-// *      summary: Delete resume from application
-// *      description: Delete the resume file from an application
-// *      tags: [Application]
-// *      parameters:
-// *          - $ref: "#/components/parameters/access_token"
-// *          - in: path
-// *            name: id
-// *            description: Application id
-// *            required: true
-// *      responses:
-// *          200:
-// *              description: Resume deleted successfully
-// *          401:
-// *              $ref: "#/components/responses/401unauthorized"
-// *          403:
-// *              $ref: "#/components/responses/403forbidden"
-// *          404:
-// *              description: Application or resume not found
-// *          500:
-// *              $ref: "#/components/responses/500internalservererror"
-// */
-//router.delete("/:id/resume", verifyToken, deleteResume);
+/**
+ * @openapi
+ * 
+ * /application/{id}/resume:
+ *  delete:
+ *      summary: Delete resume from application
+ *      description: Delete the resume file from an application
+ *      tags: [Application]
+ *      parameters:
+ *          - $ref: "#/components/parameters/access_token"
+ *          - in: path
+ *            name: id
+ *            description: Application id
+ *            required: true
+ *      responses:
+ *          200:
+ *              description: Resume deleted successfully
+ *          401:
+ *              $ref: "#/components/responses/401unauthorized"
+ *          403:
+ *              $ref: "#/components/responses/403forbidden"
+ *          404:
+ *              description: Application or resume not found
+ *          500:
+ *              $ref: "#/components/responses/500internalservererror"
+ */
+router.delete("/:id/resume", verifyToken, deleteResume);
 
 export default router;

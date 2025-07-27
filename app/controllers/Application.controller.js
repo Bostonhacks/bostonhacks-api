@@ -236,7 +236,7 @@ export const updateApplication = async (req, res) => {
     }
 
     const updateData = transformApplicationData(req.body);
-    
+
     // Store old file name for potential cleanup
     oldFileName = application.resumeUrl;
 
