@@ -40,7 +40,10 @@ jobs:
           echo "EMAIL_SIGNUP=true" >> .env.test
           echo "LOG_LEVEL=debug" >> .env.test
           echo "PORT=8000" >> .env.test
-
+          echo "AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }} >> .env.test
+          echo "AZURE_CONTAINER_NAME=resumes" >> .env.test
+          echo "AZURE_STORAGE_ACCOUNT_NAME=bostonhacksapi" >> .env.test
+          echo "AZURE_STORAGE_ACCOUNT_KEY=${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }} >> .env.test
 
       
       - name: Run Docker Compose for tests and linting
