@@ -91,7 +91,8 @@ const swaggerDefinition = {
           "major",
           "diet",
           "shirtSize",
-          "whyBostonhacks"
+          "whyBostonhacks",
+          "resumeUrl",
         ],
         "properties": {
           "id": {
@@ -223,6 +224,10 @@ const swaggerDefinition = {
             "default": "PENDING",
             "description": "Current status of the application",
             "example": "PENDING"
+          },
+          "resumeUrl": {
+            "type": "string",
+            "description": "File name of uploaded resume. Use the get resume routes to get a temporary access URL.",
           }
         }
       },

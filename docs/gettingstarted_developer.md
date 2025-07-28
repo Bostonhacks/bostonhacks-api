@@ -15,6 +15,7 @@ The preferred way to develop since it spins up all components for you in one com
    3. Create a `.env.development` file as specified in `.env.example`
       - For help with Google Auth, refer to the [Google Cloud App Setup](/docs/googleauth.md#google-cloud-app-setup) section
    4. If you changed schemas in `prisma/schema.prisma`, run `npm run build:dev` to create a migration. If you don't do this, then your changes will not be reflected in the dev environment.
+      - You might need to change your `.env.development` file to use db `@localhost` since the build command uses the same `.env` file as the Docker container.
    5. Run `npm run docker:dev` to start the docker container
       1. `npm run exitdocker:dev` to exit containers
       2. `npm run cleandocker:dev` to exit containers and remove created volumes
@@ -83,6 +84,8 @@ Tests are done on Pull requests which require the use of multiple secrets. Pleas
 ## DB
 
 Deployment database is a PostgreSQL instance hosted on Supabase. Although Supabase has an API, we don't use this as Supabase might not be the best option in the future, so the only code to change if a migration occurs is the database URI.
+
+Azure Blob Storage is used for file storage and the `.env.example` file should have the required environment variables to connect to the Azure Blob Storage account. If you change the file storage provider, you can change the Application controller and env files in CI/CD to match.
 
 <br/>
 
