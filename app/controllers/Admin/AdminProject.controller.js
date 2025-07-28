@@ -1,224 +1,271 @@
 import prismaInstance from "../../database/Prisma.js";
 import logger from "../../utils/logger.js";
+import PrismaError from "../../constants/PrismaError.js";
 
 const prisma = prismaInstance;
 
-// create project
+// Get all projects with filtering
+export const getAllProjects = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      name,
+      year,
+      track,
+      isWinner,
+      technologies,
+      teamName,
+      include
+    } = req.query;
+
+    // Build filter object
+    const where = {};
+
+    if (name) {
+      where.name = {
+        contains: name,
+        mode: 'insensitive'
+      };
+    }
+
+    if (year) {
+      where.year = parseInt(year);
+    }
+
+    if (track) {
+      where.track = {
+        contains: track,
+        mode: 'insensitive'
+      };
+    }
+
+    if (isWinner !== undefined) {
+      where.isWinner = isWinner === 'true';
+    }
+
+    if (technologies) {
+      where.technologies = {
+        hasSome: technologies.split(',').map(tech => tech.trim())
+      };
+    }
+
+    if (teamName) {
+      where.teamName = {
+        contains: teamName,
+        mode: 'insensitive'
+      };
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
+
+    // Get projects with filters
+    const projects = await prisma.project.findMany({
+      where,
+      skip,
+      take,
+      include: {
+        members: include === 'true',
+        scores: include === 'true'
+      },
+      orderBy: {
+        year: 'desc'
+      }
+    });
+
+    // Get total count for pagination
+    const total = await prisma.project.count({ where });
+
+    logger.info(`Admin retrieved ${projects.length} projects with filters: ${JSON.stringify(where)}`);
+
+    return res.status(200).json({
+      projects,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (err) {
+    logger.error('Error getting all projects:', err);
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
+};
+
+// Get specific project by ID
+export const getProjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { include } = req.query;
+
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: {
+        members: include === 'true',
+        scores: include === 'true' ? {
+          include: {
+            judge: {
+              include: {
+                user: true
+              }
+            }
+          }
+        } : false
+      }
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found"
+      });
+    }
+
+    logger.info(`Admin retrieved project with id ${id}`);
+    return res.status(200).json(project);
+  } catch (err) {
+    logger.error('Error getting project by ID:', err);
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
+};
+
+// Create new project
 export const createProject = async (req, res) => {
-    try {
+  try {
+    const projectData = req.body;
 
-        // get member array
-        const members = req.body.members;
-        if (!members || members.length === 0) {
-            return res.status(400).json({ message: "members array field is required" });
+    // Handle members if provided as email array
+    if (projectData.members && Array.isArray(projectData.members)) {
+      const memberEmails = projectData.members;
+      const members = await prisma.user.findMany({
+        where: {
+          email: {
+            in: memberEmails
+          }
+        },
+        select: {
+          id: true
         }
+      });
 
-        // find members
-        const foundMembers = await prisma.user.findMany({
-            where: {
-                email: {
-                    in: members
-                }
-            },
-            select: {
-                id: true
-            }
-        });
-        // squash objects to array
-        const foundMembersIds = foundMembers.map(member => member.id);
-
-        if (foundMembersIds.length !== members.length) {
-            return res.status(400).json({ message: "One or more members not found" });
-        }
-
-
-        if (req.body.year !== new Date().getFullYear()) {
-            return res.status(400).json({ message: "Invalid year" });
-        }
-
-        // figure out if members already have a project for this year
-        const usersWithProjects = await prisma.user.findMany({
-            where: {
-                id: {
-                    in: foundMembersIds
-                },
-            },
-            select: {
-                projects: {
-                    where: {
-                        year: new Date().getFullYear()
-                    },
-                    select: {
-                        id: true
-                    }
-                },
-                email: true
-            }
-
-        });
-
-        for (const user of usersWithProjects) {
-            if (user?.projects?.length > 0) {
-                return res.status(400).json({ message: `User ${user.email} already has a project for this year (${new Date().getFullYear()})` });
-            }
-        }
-
-
-        // Create project. Validated with zod. See app/database/prisma.js for validations
-        const project = await prisma.project.create({
-            data: { 
-                ...req.body,
-                members: {
-                    connect: foundMembersIds.map(userId => ({ id: userId }))
-                }
-            }
-        });
-
-        res.status(201).json({ message: "Project created", project });
-    } catch (err) {
-        logger.error(`createProject(): ${err}`);
-
-        // if zoderror, return the error message
-        if (err.name === "ZodError") {
-            return res.status(400).json({
-                message: "Validation error",
-                error: err.errors
-            });
-        }
-
-        res.status(500).json({ message: "Internal server error", error: err });
+      projectData.members = {
+        connect: members.map(member => ({ id: member.id }))
+      };
     }
+
+    const project = await prisma.project.create({
+      data: projectData,
+      include: {
+        members: true,
+        scores: true
+      }
+    });
+
+    logger.info(`Admin created project with id ${project.id}`);
+    return res.status(201).json({
+      message: "Project created successfully",
+      project
+    });
+  } catch (err) {
+    logger.error('Error creating project:', err);
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
 };
 
-// get project
-export const getProject = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        // get project if user is the owner
-        const project = await prisma.project.findUnique({
-            where: { 
-                id: id
-            },
-            include: {
-                members: {
-                    select: {
-                        email: true,
-                        id: true
-                    }
-                }
-            }
-        });
-
-        if (!project) {
-            return res.status(404).json({ message: "Project not found" });
-        }
-
-        return res.status(200).json(project);
-    } catch (error) {
-        logger.error(`getProject(): ${error}`);
-        return res.status(500).json({ message: "Internal server error", error: "" });
-    }
-};
-
-
-// update project
+// Update project
 export const updateProject = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
 
-        const project = await prisma.project.findUnique({
-            where: { id: id },
-            include: {
-                members: {
-                    select: {
-                        id: true
-                    }
-                }
+    // Remove id from update data if present
+    delete updateData.id;
 
-            }
-        });
-
-        if (!project) {
-            return res.status(404).json({ message: "Project not found" });
+    // Handle members update if provided
+    if (updateData.members && Array.isArray(updateData.members)) {
+      const memberEmails = updateData.members;
+      const members = await prisma.user.findMany({
+        where: {
+          email: {
+            in: memberEmails
+          }
+        },
+        select: {
+          id: true
         }
-        logger.debug(JSON.stringify(project, undefined, 2));
+      });
 
-        // Check if user is the owner of the project
-        if (!project?.members?.some(member => member.id === req.user.id)) {
-            return res.status(403).json({ message: "You are not authorized to update this project" });
-        }
-
-        // check if project is already judged, if so, no updates
-        if (project?.scores?.length > 0) {
-            return res.status(403).json({ message: "Project has already been judged. No updates allowed" });
-        }
-
-        // if we have no members, add the current user
-        if (!req.body.members) {
-            req.body.members = [];
-            req.body.members.push(req.user.id);
-        }
-
-        const updatedProject = await prisma.project.update({
-            where: { id: id },
-            data: {
-                ...req.body,
-                members: {
-                    connect: req.body.members?.map(userId => ({ id: userId }))
-                }
-            },
-            include: {
-                members: {
-                    select: {
-                        email: true,
-                        id: true
-                    }
-                }
-            }
-        });
-
-        return res.status(200).json({ message: "Project updated", updatedProject });
-    } catch (err) {
-        logger.error(`updateProject(): ${err}`);
-
-        // if zoderror, return the error message
-        if (err.name === "ZodError") {
-            return res.status(400).json({
-                message: "Validation error",
-                error: err.errors
-            });
-        }
-        
-        return res.status(500).json({ message: "Internal server error", error: "" });
+      updateData.members = {
+        set: members.map(member => ({ id: member.id }))
+      };
     }
+
+    const project = await prisma.project.update({
+      where: { id },
+      data: updateData,
+      include: {
+        members: true,
+        scores: true
+      }
+    });
+
+    logger.info(`Admin updated project with id ${id}`);
+    return res.status(200).json({
+      message: "Project updated successfully",
+      project
+    });
+  } catch (err) {
+    logger.error('Error updating project:', err);
+
+    if (err.code === PrismaError.RecordsNotFound) {
+      return res.status(404).json({
+        message: "Project not found"
+      });
+    }
+
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
 };
 
-// delete project
+// Delete project
 export const deleteProject = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const project = await prisma.project.findUnique({
-            where: { id: id }
-        });
+    await prisma.project.delete({
+      where: { id }
+    });
 
-        if (!project) {
-            return res.status(404).json({ message: "Project not found" });
-        }
+    logger.info(`Admin deleted project with id ${id}`);
+    return res.status(200).json({
+      message: "Project deleted successfully"
+    });
+  } catch (err) {
+    logger.error('Error deleting project:', err);
 
-        // Check if user is the owner of the project
-        if (project.userId !== req.user.id) {
-            return res.status(403).json({ message: "You are not authorized to delete this project" });
-        }
-
-        await prisma.project.delete({
-            where: { id: id }
-        });
-
-        return res.status(200).json({ message: "Project deleted" });
-    } catch (error) {
-        logger.error(`deleteProject(): ${error}`);
-        return res.status(500).json({ message: "Internal server error", error: "" });
+    if (err.code === PrismaError.RecordsNotFound) {
+      return res.status(404).json({
+        message: "Project not found"
+      });
     }
+
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
 };
