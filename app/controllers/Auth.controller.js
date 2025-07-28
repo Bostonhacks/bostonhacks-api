@@ -95,7 +95,7 @@ This is typically handled by frontend Google login client which utilizes an Open
 //             message: "Internal server error",
 //             error: err.message
 //         });
-//     }
+//     } 
 
 // }
 
@@ -311,7 +311,7 @@ export const googleCallback = async (req, res) => {
 
     if (redirect_uri) {
       logger.info("Redirecting to: " + redirect_uri);
-      return res.redirect(`${redirect_uri}?success=true&message=successfulLogin&user=${JSON.stringify(user)}`);
+      return res.redirect(`${redirect_uri}?success=true&message=successfulLogin&userId=${user.id}`);
     }
     return res.status(200).json({
       message: "User logged in successfully",
