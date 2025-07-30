@@ -10,45 +10,22 @@ export const getAllUsers = async (req, res) => {
     const {
       page = 1,
       limit = 10,
-      email,
-      firstName,
-      lastName,
-      role,
-      authProvider,
-      include
+      include = "true",
     } = req.query;
 
     // Build filter object
     const where = {};
 
-    if (email) {
-      where.email = {
-        contains: email,
-        mode: 'insensitive'
-      };
-    }
+    Object.entries(req.query).forEach(([key, value]) => {
+      if (key === "page" || key === "limit") return;
 
-    if (firstName) {
-      where.firstName = {
-        contains: firstName,
-        mode: 'insensitive'
-      };
-    }
+      let parsedValue = value;
+      if (value === "true") parsedValue = true;
+      else if (value === "false") parsedValue = false;
+      else if (!isNaN(value)) parsedValue = parseFloat(value);
 
-    if (lastName) {
-      where.lastName = {
-        contains: lastName,
-        mode: 'insensitive'
-      };
-    }
-
-    if (role) {
-      where.role = role;
-    }
-
-    if (authProvider) {
-      where.authProvider = authProvider;
-    }
+      where[key] = parsedValue;
+    });
 
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);

@@ -10,95 +10,31 @@ export const getAllApplications = async (req, res) => {
     const {
       page = 1,
       limit = 10,
-      status,
-      applicationYear,
-      userId,
-      gender,
-      ethnicity,
-      gradYear,
-      school,
-      city,
-      state,
-      country,
-      educationLevel,
-      major,
-      include
+      include = "true",
     } = req.query;
 
     // Build filter object
     const where = {};
 
-    if (status) {
-      where.status = status;
-    }
+    Object.entries(req.query).forEach(([key, value]) => {
+      if (key === "page" || key === "limit") return;
 
-    if (applicationYear) {
-      where.applicationYear = parseInt(applicationYear);
-    }
+      let parsedValue = value;
+      if (value === "true") parsedValue = true;
+      else if (value === "false") parsedValue = false;
+      else if (!isNaN(value)) parsedValue = parseFloat(value);
 
-    if (userId) {
-      where.userId = userId;
-    }
-
-    if (gender) {
-      where.gender = {
-        contains: gender,
-        mode: 'insensitive'
-      };
-    }
-
-    if (ethnicity) {
-      where.ethnicity = {
-        contains: ethnicity,
-        mode: 'insensitive'
-      };
-    }
-
-    if (gradYear) {
-      where.gradYear = parseInt(gradYear);
-    }
-
-    if (school) {
-      where.school = {
-        contains: school,
-        mode: 'insensitive'
-      };
-    }
-
-    if (city) {
-      where.city = {
-        contains: city,
-        mode: 'insensitive'
-      };
-    }
-
-    if (state) {
-      where.state = {
-        contains: state,
-        mode: 'insensitive'
-      };
-    }
-
-    if (country) {
-      where.country = {
-        contains: country,
-        mode: 'insensitive'
-      };
-    }
-
-    if (educationLevel) {
-      where.educationLevel = {
-        contains: educationLevel,
-        mode: 'insensitive'
-      };
-    }
-
-    if (major) {
-      where.major = {
-        contains: major,
-        mode: 'insensitive'
-      };
-    }
+      if (key.startsWith("user.")) {
+        const [, userField] = key.split(".");
+        where.user = where.user || {};
+        where.user[userField] = {
+          contains: parsedValue,
+          mode: 'insensitive'
+        }
+      } else {
+        where[key] = parsedValue;
+      }
+    })
 
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -110,11 +46,12 @@ export const getAllApplications = async (req, res) => {
       skip,
       take,
       include: {
-        user: include === 'true'
+        user: include === "true"
       },
-      orderBy: {
-        applicationYear: 'desc'
-      }
+      orderBy: [
+        { applicationYear: "desc" },
+        { user: { name: "asc" } }
+      ]
     });
 
     // Get total count for pagination
@@ -144,12 +81,12 @@ export const getAllApplications = async (req, res) => {
 export const getApplicationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { include } = req.query;
+    const { include = "true" } = req.query;
 
     const application = await prisma.application.findUnique({
       where: { id },
       include: {
-        user: include === 'true'
+        user: include === "true"
       }
     });
 

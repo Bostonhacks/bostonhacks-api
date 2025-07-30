@@ -11,14 +11,13 @@ const router = express.Router();
 
 /**
  * @openapi
- * /admin/users:
+ * /admin/user:
  *   get:
  *     summary: Get all users with filtering
  *     description: Admin endpoint to retrieve all users with optional filtering and pagination
- *     tags: [Admin - Users]
- *     security:
- *       - accessToken: []
+ *     tags: [Admin - User]
  *     parameters:
+ *       - $ref: "#/components/parameters/access_token"
  *       - in: query
  *         name: page
  *         schema:
@@ -56,6 +55,9 @@ const router = express.Router();
  *         schema:
  *           type: boolean
  *         description: Include related data (projects, applications, judge)
+ *       - in: query
+ *         name: <any user field>
+ *         description: Any user field can be used for filtering
  *     responses:
  *       200:
  *         description: Users retrieved successfully
@@ -68,14 +70,15 @@ router.get("/", getAllUsers);
 
 /**
  * @openapi
- * /admin/users/{id}:
+ * /admin/user/{id}:
  *   get:
  *     summary: Get specific user by ID
  *     description: Admin endpoint to retrieve a specific user by ID
- *     tags: [Admin - Users]
+ *     tags: [Admin - User]
  *     security:
  *       - accessToken: []
  *     parameters:
+ *       - $ref: "#/components/parameters/access_token"
  *       - in: path
  *         name: id
  *         required: true
@@ -99,13 +102,15 @@ router.get("/:id", getUserById);
 
 /**
  * @openapi
- * /admin/users:
+ * /admin/user:
  *   post:
  *     summary: Create new user
  *     description: Admin endpoint to create a new user
- *     tags: [Admin - Users]
+ *     tags: [Admin - User]
  *     security:
  *       - accessToken: []
+ *     parameters:
+ *       - $ref: "#/components/parameters/access_token"
  *     requestBody:
  *       required: true
  *       content:
@@ -145,14 +150,15 @@ router.post("/", createUser);
 
 /**
  * @openapi
- * /admin/users/{id}:
+ * /admin/user/{id}:
  *   put:
  *     summary: Update user
  *     description: Admin endpoint to update a user
- *     tags: [Admin - Users]
+ *     tags: [Admin - User]
  *     security:
  *       - accessToken: []
  *     parameters:
+ *       - $ref: "#/components/parameters/access_token"
  *       - in: path
  *         name: id
  *         required: true
@@ -176,14 +182,15 @@ router.put("/:id", updateUser);
 
 /**
  * @openapi
- * /admin/users/{id}:
+ * /admin/user/{id}:
  *   delete:
  *     summary: Delete user
  *     description: Admin endpoint to delete a user
- *     tags: [Admin - Users]
+ *     tags: [Admin - User]
  *     security:
  *       - accessToken: []
  *     parameters:
+ *       - $ref: "#/components/parameters/access_token"
  *       - in: path
  *         name: id
  *         required: true

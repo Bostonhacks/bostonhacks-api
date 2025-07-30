@@ -218,6 +218,12 @@ const swaggerDefinition = {
             "description": "ID of the user who submitted the application",
             "example": 1
           },
+          "user": {
+            "type": "object",
+            "description": "Populated user object",
+            "readOnly": true,
+            "$ref": "#/components/schemas/User"
+          },
           "status": {
             "type": "string",
             "enum": ["PENDING", "ACCEPTED", "WAITLISTED", "REJECTED"],

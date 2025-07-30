@@ -41,7 +41,8 @@ const router = express.Router();
  *         description: Any field can be used for the filter.
  *
  *     responses:
- *       description: Array of applications successfully retrieved (paginated).
+ *       200:
+ *         description: Array of applications successfully retrieved (paginated).
  *         content:
  *           application/json:
  *             schema:
