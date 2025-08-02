@@ -1,206 +1,212 @@
-import prismaInstance from "../../../database/Prisma.js";
-import logger from "../../../utils/logger.js";
-
+import prismaInstance from "../../database/Prisma.js";
+import logger from "../../utils/logger.js";
+import PrismaError from "../../constants/PrismaError.js";
+import Role from "../../constants/Role.js";
 
 const prisma = prismaInstance;
 
-export const getApplication = async(req, res) => {
-    try {
-        if (!req.params.id) {
-            return res.status(400).json({
-                message: "id parameter is required"
-            });
+// Get all applications with filtering
+export const getAllApplications = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      include = "true",
+    } = req.query;
+
+    // Build filter object
+    const where = {};
+
+    Object.entries(req.query).forEach(([key, value]) => {
+      if (key === "page" || key === "limit") return;
+
+      let parsedValue = value;
+      if (value === "true") parsedValue = true;
+      else if (value === "false") parsedValue = false;
+      else if (!isNaN(value)) parsedValue = parseFloat(value);
+
+      if (key.startsWith("user.")) {
+        const [, userField] = key.split(".");
+        where.user = where.user || {};
+        where.user[userField] = {
+          contains: parsedValue,
+          mode: 'insensitive'
         }
+      } else {
+        where[key] = parsedValue;
+      }
+    })
 
-        const application = await prisma.application.findUnique({
-            where: {
-                id: req.params.id,
-            }
-        });
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
 
-        // verify logged in user matches requested user
-        if (req.user.id !== application?.userId) {
-            logger.warn(`Attempted unauthorized access to application with id ${req.params.id}`);
-            return res.status(403).json({
-                message: "You are not authorized to access this resource"
-            });
-        }
-        
-        
-        logger.info(`Application with id ${req.params.id} retrieved`)
+    // Get applications with filters
+    const applications = await prisma.application.findMany({
+      where,
+      skip,
+      take,
+      include: {
+        user: include === "true"
+      },
+      orderBy: [
+        { applicationYear: "desc" },
+        { user: { name: "asc" } }
+      ],
+      userRole: Role.ADMIN
+    });
 
-        return res.status(200).json(application);
-    } catch(err) {
-        logger.error(err);
-        return res.status(500).json({
-            message: "Something went wrong",
-            error: err
-        });
-    }
-}
+    // Get total count for pagination
+    const total = await prisma.application.count({ where });
 
-export const getUserApplications = async(req, res) => {
-    try {
-        if (!req.query.user_id) {
-            return res.status(400).json({
-                message: "user_id field is required"
-            });
-        }
+    logger.info(`Admin retrieved ${applications.length} applications with filters: ${JSON.stringify(where)}`);
 
-        // verify logged in user matches requested user
-        if (req.user.id !== req.query.user_id) {
-            logger.warn(`Attempted unauthorized access to application with id ${req.query.user_id}`);
-            logger.debug(`User id: ${req.user.id} | Application id: ${req.params.id}`);
-
-            return res.status(403).json({
-                message: "You are not authorized to access this resource"
-            });
-        }
-        
-        const applications = await prisma.application.findMany({
-            where: {
-                userId: req.query.user_id,
-            }
-        });
-        logger.info(`Applications for user with id ${req.query.user_id} retrieved`)
-
-        return res.status(200).json(applications);
-    } catch(err) {
-        logger.error(err);
-        return res.status(500).json({
-            message: "Something went wrong",
-            error: err
-        });
-    }
-}
-
-export const createApplication = async (req, res) => {
-    try {
-
-
-        const { userId } = req.body;
-
-        // auth
-        if (!userId) {
-            return res.status(400).json({
-                message: "userId field is required"
-            });
-        }
-        else if (req.user.id !== userId) {
-            logger.warn(`Attempted unauthorized access to create application for user with id ${userId}`);
-            return res.status(403).json({
-                message: "You are not authorized to access this resource"
-            });
-        }
-
-        // check if correct year
-        if (req.body.applicationYear !== new Date().getFullYear()) {
-            return res.status(400).json({
-                message: "Invalid application year"
-            });
-        }
-
-        // check if user already has application for current year
-        const existingApplication = await prisma.application.findFirst({
-            where: {
-                userId: userId,
-                applicationYear: req.body.applicationYear
-            }
-        });
-        if (existingApplication) {
-            return res.status(400).json({
-                message: "User already has an application for this year"
-            });
-        }
-
-        const applicationData = {
-            ...req.body,
-            userId: req.user.id,
-        };
-
-        // uses zod for input validation
-        const application = await prisma.application.create({
-            data: applicationData
-        });
-
-        logger.info(`Application with id ${application.id} created by user with id ${req.user.id}`)
-
-        return res.status(201).json({
-            message: "Application created successfully",
-            application: application
-        });
-    } catch (err) {
-        logger.error(err);
-
-        // if zoderror, return the error message
-        if (err.name === "ZodError") {
-            return res.status(400).json({
-                message: "Validation error",
-                error: err.errors
-            });
-        }
-
-        return res.status(500).json({
-            message: "Something went wrong",
-            error: err
-        });
-    }
+    return res.status(200).json({
+      applications,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (err) {
+    logger.error('Error getting all applications:', err);
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
 };
 
-export const updateApplication = async(req, res) => {
-    // dont allow update to application year by user. only admins
-    // zod will handle the rest of the validation
+// Get specific application by ID
+export const getApplicationById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { include = "true" } = req.query;
 
-    try {
-        if (!req.params.id) {
-            return res.status(400).json({
-                message: "id parameter is required"
-            });
-        }
+    const application = await prisma.application.findUnique({
+      where: { id },
+      include: {
+        user: include === "true"
+      }
+    });
 
-        const application = await prisma.application.findUnique({
-            where: {
-                id: req.params.id,
-            }
-        });
-
-        // verify logged in user matches requested user
-        if (req.user.id !== application?.userId) {
-            logger.warn(`Attempted unauthorized access to application with id ${req.params.id}`);
-            return res.status(403).json({
-                message: "You are not authorized to access this resource"
-            });
-        }
-
-
-
-        const updatedApplication = await prisma.application.update({
-            where: {
-                id: req.params.id
-            },
-            data: req.body
-        });
-
-        logger.info(`Application with id ${req.params.id} updated`)
-        res.status(200).json({
-            message: "Application updated successfully",
-            application: updatedApplication
-        });
+    if (!application) {
+      return res.status(404).json({
+        message: "Application not found"
+      });
     }
-    catch (err) {
-        logger.error(err);
 
-        // if zoderror, return the error message
-        if (err.name === "ZodError") {
-            return res.status(400).json({
-                message: "Validation error",
-                error: err.errors
-            });
-        }
+    logger.info(`Admin retrieved application with id ${id}`);
+    return res.status(200).json(application);
+  } catch (err) {
+    logger.error('Error getting application by ID:', err);
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
+};
 
-        return res.status(500).json({
-            message: "Something went wrong",
-            error: err
-        });
+// Create new application
+export const createApplication = async (req, res) => {
+  try {
+    const applicationData = req.body;
+
+    const application = await prisma.application.create({
+      data: applicationData,
+      include: {
+        user: true
+      },
+      userRole: Role.ADMIN
+    });
+
+    logger.info(`Admin created application with id ${application.id}`);
+    return res.status(201).json({
+      message: "Application created successfully",
+      application
+    });
+  } catch (err) {
+    logger.error('Error creating application:', err);
+
+    if (err.code === PrismaError.UniqueConstraintFailed) {
+      return res.status(400).json({
+        message: "Application with this phone number already exists"
+      });
     }
+
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
+};
+
+// Update application
+export const updateApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Remove id from update data if present
+    delete updateData.id;
+
+    const application = await prisma.application.update({
+      where: { id },
+      data: updateData,
+      include: {
+        user: true
+      },
+      userRole: Role.ADMIN
+    });
+
+    logger.info(`Admin updated application with id ${id}`);
+    return res.status(200).json({
+      message: "Application updated successfully",
+      application
+    });
+  } catch (err) {
+    logger.error('Error updating application:', err);
+
+    if (err.code === PrismaError.RecordsNotFound) {
+      return res.status(404).json({
+        message: "Application not found"
+      });
+    }
+
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
+};
+
+// Delete application
+export const deleteApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.application.delete({
+      where: { id }
+    });
+
+    logger.info(`Admin deleted application with id ${id}`);
+    return res.status(200).json({
+      message: "Application deleted successfully"
+    });
+  } catch (err) {
+    logger.error('Error deleting application:', err);
+
+    if (err.code === PrismaError.RecordsNotFound) {
+      return res.status(404).json({
+        message: "Application not found"
+      });
+    }
+
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: err.message
+    });
+  }
 };

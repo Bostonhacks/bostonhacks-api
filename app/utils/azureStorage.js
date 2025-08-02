@@ -21,10 +21,10 @@ export const uploadFileToAzure = async (file, fileName) => {
     await containerClient.createIfNotExists();
 
     const fileYear = new Date().getFullYear();
-    
+
     // Create the full blob path: year/filename
     const blobPath = `${fileYear}/${fileName}`;
-    
+
     const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
 
     await blockBlobClient.upload(file.buffer, file.buffer.length, {

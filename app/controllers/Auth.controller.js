@@ -1,4 +1,4 @@
-// import { auth, OAuth2Client } from "google-auth-library";
+import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -9,7 +9,7 @@ const prisma = prismaInstance;
 
 
 // create new OAuth2Client instance
-// const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CALLBACK_URL);
 
 const GOOGLE_OAUTH_SCOPES = [
   "https://www.googleapis.com/auth/userinfo.profile",
@@ -174,12 +174,20 @@ export const googleCallback = async (req, res) => {
     let userInfo;
     let redirect_uri;
     let error_uri;
-    if (req.headers.authorization) {
+    if (req.headers.authorization && process.env.NODE_ENV === "development") {
       // good for testing with postman, insomnia, etc. 
-      // This assumes you have already gotten an access token by means from another source (i.e. insomnia OAuth2 login with same client id)
-      userInfo = await fetch(process.env.GOOGLE_TOKEN_INFO_URL, {
+      // This assumes you have already gotten an ID token (not access token) from another source
+      const debugResponse = await fetch(process.env.GOOGLE_TOKEN_INFO_URL, {
         headers: { Authorization: req.headers.authorization }
       }).then(res => res.json());
+
+      userInfo = {
+        email: debugResponse.email,
+        name: debugResponse.name,
+        given_name: debugResponse.given_name,
+        picture: debugResponse.picture,
+        email_verified: debugResponse.email_verified
+      };
 
     } else {
       // normal auth flow
@@ -190,7 +198,7 @@ export const googleCallback = async (req, res) => {
 
       // check state to prevent CSRF
       const oauthstateCookie = req.cookies.oauthstate;
-      logger.info(oauthstateCookie)
+      // logger.info(oauthstateCookie)
       if (!oauthstateCookie) {
         return res.status(400).json({
           message: "Missing OAuth State"
@@ -231,48 +239,35 @@ export const googleCallback = async (req, res) => {
 
       // if state matches, then continue
 
-      // exchange code for access token
-      const response = await fetch(process.env.GOOGLE_ACCESS_TOKEN_URL, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          code,
-          client_id: process.env.GOOGLE_CLIENT_ID,
-          client_secret: process.env.GOOGLE_CLIENT_SECRET,
-          redirect_uri: process.env.GOOGLE_CALLBACK_URL,
-          grant_type: "authorization_code"
-        })
+      // Exchange code for tokens using google-auth-library
+      const { tokens } = await client.getToken({
+        code,
+        redirect_uri: process.env.GOOGLE_CALLBACK_URL
       });
 
-      const accessToken = await response.json();
+      // Verify the ID token and get user info
+      const ticket = await client.verifyIdToken({
+        idToken: tokens.id_token,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
 
-      if (!accessToken || accessToken?.error) {
-        if (error_uri) {
-          return res.redirect(`${error_uri}?success=false&error=invalidCode`);
-        }
-        return res.status(400).json({
-          message: "Invalid code"
-        });
+      const payload = ticket.getPayload();
+      userInfo = {
+        email: payload.email,
+        name: payload.name,
+        given_name: payload.given_name,
+        picture: payload.picture,
+        email_verified: payload.email_verified
+      };
+
+
+    }
+
+    if (!userInfo.email_verified) {
+      if (error_uri) {
+        return res.redirect(`${error_uri}?success=false&error=emailNotVerified`);
       }
-
-      // get token info using access token
-      userInfo = await fetch(process.env.GOOGLE_TOKEN_INFO_URL, {
-        headers: { Authorization: `Bearer ${accessToken.access_token}` }
-      }).then(res => res.json());
-
-
-      // logger.debug(JSON.stringify(userInfo, undefined, 2));
-
-      if (!userInfo.email_verified && !userInfo.verified_email) {
-        if (error_uri) {
-          return res.redirect(`${error_uri}?success=false&error=emailNotVerified`);
-        }
-        return res.status(401).json({ message: 'Email not verified' });
-      }
-
-
+      return res.status(401).json({ message: 'Email not verified' });
     }
 
     // Create or update user

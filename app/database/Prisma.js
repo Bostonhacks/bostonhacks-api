@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import e from "express";
 import { connect } from "http2";
 import { z } from 'zod';
+import { Role, AuthProvider, ApplicationStatus } from "../constants/index.js";
 
 /**
  * This file contains the Prisma client with Zod schema validation extensions.
@@ -17,9 +18,9 @@ import { z } from 'zod';
 
 // Define all the Zod schemas for validations before executing queries
 // Enum schemas that match your Prisma enums
-const RoleSchema = z.enum(['USER', 'ADMIN']);
-const StatusSchema = z.enum(['PENDING', 'ACCEPTED', 'WAITLISTED', 'REJECTED']);
-const AuthProviderSchema = z.enum(['EMAIL', 'FACEBOOK', 'GOOGLE']);
+const RoleSchema = z.enum(Object.values(Role));
+const StatusSchema = z.enum(Object.values(ApplicationStatus));
+const AuthProviderSchema = z.enum(Object.values(AuthProvider));
 
 /**
  * ------------ Main base schemas ------------
@@ -31,9 +32,9 @@ const userSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   avatar: z.string().url().nullable().optional(),
-  role: RoleSchema.default('USER'),
-  authProvider: AuthProviderSchema.default('EMAIL'),
-  password: z.string().min(6, "Password must be at least 6 characters").nullable().optional(),
+  role: RoleSchema.default(Role.USER),
+  authProvider: AuthProviderSchema.default(AuthProvider.GOOGLE),
+  password: z.string().min(6, "Password must be at least 6 characters").nullable().optional(), // only optional with google login
 });
 
 // Application schema with detailed validation
@@ -60,8 +61,8 @@ const applicationSchema = z.object({
   whyBostonhacks: z.string().min(10, "Please provide a more detailed response"),
   applicationYear: z.number().int().min(2023).max(new Date().getFullYear() + 1),
   userId: z.string().uuid("Must be a valid user ID").readonly(),
-  status: StatusSchema.default('PENDING').readonly(),
-  resumeUrl: z.string("Resume URL must be valid"),
+  status: StatusSchema.default(ApplicationStatus.PENDING).readonly(),
+  resumeUrl: z.string("Resume URL must be valid").readonly(),
 });
 
 // Score schema
@@ -238,6 +239,12 @@ const adminCriteriaCreateSchema = judgingCriteriaSchema.omit({
 
 const adminCriteriaUpdateSchema = judgingCriteriaSchema.partial().strict();
 
+const adminApplicationCreateSchema = applicationSchema.omit({ id: true }).strict();
+const adminApplicationUpdateSchema = applicationSchema.partial().strict();
+
+const adminUserCreateSchema = userSchema.omit({ id: true }).strict();
+const adminUserUpdateSchema = userSchema.partial().strict();
+
 /**
  * -------------- Prisma Client Creation ---------------
  */
@@ -254,32 +261,46 @@ const prismaInstance = new PrismaClient({
     user: {
       async create({ args, query }) {
         // upon a creation, check the userRole (which needs to be passed in as userRole when performing a query)
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
 
-        // Validate the data against the schema
-        args.data = userCreateSchema.parse(args.data);
+        if (role === Role.ADMIN) {
+          args.data = adminUserCreateSchema.parse(args.data);
+        } else {
+          // Validate the data against the schema
+          args.data = userCreateSchema.parse(args.data);
+        }
+
         return query(args);
 
       },
       async update({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
-        // Validate the update data against the partial schema
-        args.data = userUpdateSchema.parse(args.data);
+
+        if (role === Role.ADMIN) {
+          args.data = adminUserUpdateSchema.parse(args.data);
+        } else {
+          args.data = userUpdateSchema.parse(args.data);
+        }
         return query(args);
 
       },
       async upsert({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
 
         // Validate both create and update data
-        args.create = userCreateSchema.parse(args.create);
-        args.update = userUpdateSchema.parse(args.update);
+        if (role === Role.ADMIN) {
+          args.create = adminUserCreateSchema.parse(args.create);
+          args.update = adminUserUpdateSchema.parse(args.update);
+        } else {
+          args.create = userCreateSchema.parse(args.create);
+          args.update = userUpdateSchema.parse(args.update);
+        }
         return query(args);
 
       },
@@ -287,40 +308,53 @@ const prismaInstance = new PrismaClient({
 
     application: {
       async create({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
 
 
         // Validate the data against the schema
-        args.data = applicationCreateSchema.parse(args.data);
+        if (role === Role.ADMIN) {
+          args.data = adminApplicationCreateSchema.parse(args.data);
+        } else {
+          args.data = applicationCreateSchema.parse(args.data);
+        }
         return query(args);
 
       },
       async update({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
 
         // Validate the update data against the partial schema
-        args.data = applicationUpdateSchema.parse(args.data);
+        if (role === role.ADMIN) {
+          args.data = adminApplicationUpdateSchema.parse(args.data);
+        } else {
+          args.data = applicationUpdateSchema.parse(args.data);
+        }
         return query(args);
 
       },
       async upsert({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate both create and update data
-        args.create = applicationCreateSchema.parse(args.create);
-        args.update = applicationUpdateSchema.parse(args.update);
+        if (role === Role.ADMIN) {
+          args.create = adminApplicationCreateSchema.parse(args.create);
+          args.update = adminApplicationUpdateSchema.parse(args.update);
+        } else {
+          args.create = applicationCreateSchema.parse(args.create);
+          args.update = applicationUpdateSchema.parse(args.update);
+        }
         return query(args);
 
       },
     },
     project: {
       async create({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate the data against the schema
@@ -329,7 +363,7 @@ const prismaInstance = new PrismaClient({
 
       },
       async update({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate the update data against the partial schema
@@ -338,7 +372,7 @@ const prismaInstance = new PrismaClient({
 
       },
       async upsert({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate both create and update data
@@ -351,11 +385,11 @@ const prismaInstance = new PrismaClient({
 
     judge: {
       async create({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate the data against the schema
-        if (role === 'ADMIN') {
+        if (role === Role.ADMIN) {
           args.data = adminJudgeCreateSchema.parse(args.data);
         } else {
           args.data = judgeCreateSchema.parse(args.data);
@@ -364,11 +398,11 @@ const prismaInstance = new PrismaClient({
 
       },
       async update({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate the update data against the partial schema
-        if (role === 'ADMIN') {
+        if (role === Role.ADMIN) {
           args.data = adminJudgeUpdateSchema.parse(args.data);
         } else {
           args.data = judgeUpdateSchema.parse(args.data);
@@ -377,11 +411,11 @@ const prismaInstance = new PrismaClient({
 
       },
       async upsert({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
 
-        if (role === 'ADMIN') {
+        if (role === Role.ADMIN) {
           // Validate both create and update data
           args.create = adminJudgeCreateSchema.parse(args.create);
           args.update = adminJudgeUpdateSchema.parse(args.update);
@@ -397,7 +431,7 @@ const prismaInstance = new PrismaClient({
 
     score: {
       async create({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate the data against the schema
@@ -406,7 +440,7 @@ const prismaInstance = new PrismaClient({
 
       },
       async update({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate the update data against the partial schema
@@ -415,7 +449,7 @@ const prismaInstance = new PrismaClient({
 
       },
       async upsert({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate both create and update data
@@ -429,11 +463,11 @@ const prismaInstance = new PrismaClient({
     judgingCriteria: {
 
       async create({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate the data against the schema
-        if (role === 'ADMIN') {
+        if (role === Role.ADMIN) {
           args.data = adminCriteriaCreateSchema.parse(args.data);
         } else {
           args.data = judgingCriteriaSchema.parse(args.data);
@@ -441,11 +475,11 @@ const prismaInstance = new PrismaClient({
         return query(args);
       },
       async update({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate the update data against the partial schema
-        if (role === 'ADMIN') {
+        if (role === Role.ADMIN) {
           args.data = adminCriteriaUpdateSchema.parse(args.data);
         } else {
           args.data = judgingCriteriaSchema.parse(args.data);
@@ -453,7 +487,7 @@ const prismaInstance = new PrismaClient({
         return query(args);
       },
       async upsert({ args, query }) {
-        const role = args.userRole || 'USER';
+        const role = args.userRole || Role.USER;
 
         delete args.userRole;
         // Validate both create and update data
