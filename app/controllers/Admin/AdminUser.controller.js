@@ -1,6 +1,7 @@
 import prismaInstance from "../../database/Prisma.js";
 import logger from "../../utils/logger.js";
 import PrismaError from "../../constants/PrismaError.js";
+import Role from "../../constants/Role.js";
 
 const prisma = prismaInstance;
 
@@ -107,7 +108,8 @@ export const createUser = async (req, res) => {
     const userData = req.body;
 
     const user = await prisma.user.create({
-      data: userData
+      data: userData,
+      userRole: Role.ADMIN,
     });
 
     logger.info(`Admin created user with id ${user.id}`);
@@ -142,7 +144,8 @@ export const updateUser = async (req, res) => {
 
     const user = await prisma.user.update({
       where: { id },
-      data: updateData
+      data: updateData,
+      userRole: Role.ADMIN,
     });
 
     logger.info(`Admin updated user with id ${id}`);

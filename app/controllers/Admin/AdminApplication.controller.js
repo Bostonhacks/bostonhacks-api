@@ -1,6 +1,7 @@
 import prismaInstance from "../../database/Prisma.js";
 import logger from "../../utils/logger.js";
 import PrismaError from "../../constants/PrismaError.js";
+import Role from "../../constants/Role.js";
 
 const prisma = prismaInstance;
 
@@ -51,7 +52,8 @@ export const getAllApplications = async (req, res) => {
       orderBy: [
         { applicationYear: "desc" },
         { user: { name: "asc" } }
-      ]
+      ],
+      userRole: Role.ADMIN
     });
 
     // Get total count for pagination
@@ -116,7 +118,8 @@ export const createApplication = async (req, res) => {
       data: applicationData,
       include: {
         user: true
-      }
+      },
+      userRole: Role.ADMIN
     });
 
     logger.info(`Admin created application with id ${application.id}`);
@@ -154,7 +157,8 @@ export const updateApplication = async (req, res) => {
       data: updateData,
       include: {
         user: true
-      }
+      },
+      userRole: Role.ADMIN
     });
 
     logger.info(`Admin updated application with id ${id}`);
