@@ -30,7 +30,6 @@ model Application {
   ethnicity       String
   gradYear        Int
   phoneNumber     String
-  email           String
   school          String
   city            String
   state           String
@@ -54,7 +53,6 @@ model Application {
   @@index([applicationYear])
   @@index([status])
   @@index([applicationYear, status])
-  @@index([email])
 }
 
 model Project {

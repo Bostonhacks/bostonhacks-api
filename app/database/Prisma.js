@@ -46,7 +46,6 @@ const applicationSchema = z.object({
   ethnicity: z.string().min(1, "Ethnicity is required"),
   gradYear: z.number().int().min(new Date().getFullYear(), "Graduation year must be current year or later"),
   phoneNumber: z.string().regex(/^\+?[0-9]{10,15}$/, "Phone number must be valid"),
-  email: z.string().email("Email must be valid"),
   school: z.string().min(1, "School name is required"),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
@@ -194,7 +193,6 @@ const userUpdateSchema = userSchema.omit({
 }).partial().strict();
 const applicationUpdateSchema = applicationSchema.omit({
   userId: true,
-  email: true,
   applicationYear: true,
   id: true,
   status: true
