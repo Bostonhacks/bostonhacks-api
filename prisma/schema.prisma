@@ -49,6 +49,12 @@ model Application {
   user            User    @relation(fields: [userId], references: [id])
   userId          String
   status          Status  @default(PENDING)
+
+  @@index([userId])
+  @@index([applicationYear])
+  @@index([status])
+  @@index([applicationYear, status])
+  @@index([email])
 }
 
 model Project {
@@ -68,6 +74,12 @@ model Project {
   placement     Int? // placement of project (1, 2, 3, ...)
   // possibly add points here
   scores        Score[]
+
+  @@index([year])
+  @@index([isWinner])
+  @@index([year, isWinner])
+  @@index([track])
+  @@index([placement])
 }
 
 model Judge {
@@ -80,6 +92,9 @@ model Judge {
   year       Int?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([year])
+  @@index([accessCode])
 }
 
 model Score {
@@ -96,6 +111,10 @@ model Score {
   updatedAt  DateTime @updatedAt
 
   @@unique([judgeId, projectId]) // Each judge can only score a project once
+  @@index([totalScore])
+  @@index([judgeId])
+  @@index([projectId])
+  @@index([createdAt])
 }
 
 model JudgingCriteria {
@@ -107,6 +126,8 @@ model JudgingCriteria {
   updatedAt    DateTime @updatedAt
 
   @@unique([year, event]) // Each event-year combination has one set of criteria
+  @@index([year])
+  @@index([event])
 }
 
 enum Role {
