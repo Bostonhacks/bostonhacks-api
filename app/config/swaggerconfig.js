@@ -136,12 +136,6 @@ const swaggerDefinition = {
             "pattern": "^\\+?[1-9]\\d{1,14}$",
             "example": "+15551234567",
           },
-          "email": {
-            "type": "string",
-            "description": "Contact email address",
-            "pattern": "^[\\w.-]+@[\\w.-]+\\.\\w{2,}$",
-            "example": "example@example.com"
-          },
           "school": {
             "type": "string",
             "description": "Current school/university",
