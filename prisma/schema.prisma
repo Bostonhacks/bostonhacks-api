@@ -29,7 +29,8 @@ model Application {
   age             Int
   ethnicity       String
   gradYear        Int
-  phoneNumber     String  @unique
+  phoneNumber     String
+  email           String
   school          String
   city            String
   state           String
