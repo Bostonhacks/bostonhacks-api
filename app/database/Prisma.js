@@ -41,7 +41,7 @@ const userSchema = z.object({
 const applicationSchema = z.object({
   id: z.string().uuid().optional().readonly(),
   gender: z.string().min(1, "Gender is required"),
-  pronous: z.string().min(1, "Pronouns are required"),
+  pronouns: z.string().min(1, "Pronouns are required"),
   age: z.number().int().positive("Age must be a positive number"),
   ethnicity: z.string().min(1, "Ethnicity is required"),
   gradYear: z.number().int().min(new Date().getFullYear(), "Graduation year must be current year or later"),
