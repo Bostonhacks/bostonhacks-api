@@ -133,9 +133,14 @@ const swaggerDefinition = {
           "phoneNumber": {
             "type": "string",
             "description": "Contact phone number",
-            "pattern": "^\\+?[\\d\\s-]{10,}$",
-            "example": "+1-555-123-4567",
-            "unique": true
+            "pattern": "^\\+?[1-9]\\d{1,14}$",
+            "example": "+15551234567",
+          },
+          "email": {
+            "type": "string",
+            "description": "Contact email address",
+            "pattern": "^[\\w.-]+@[\\w.-]+\\.\\w{2,}$",
+            "example": "example@example.com"
           },
           "school": {
             "type": "string",
