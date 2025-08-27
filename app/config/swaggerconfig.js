@@ -78,7 +78,7 @@ const swaggerDefinition = {
         "type": "object",
         "required": [
           "gender",
-          "pronous",
+          "pronouns",
           "age",
           "ethnicity",
           "gradYear",
@@ -107,7 +107,7 @@ const swaggerDefinition = {
             "description": "Applicant's gender",
             "example": "Male"
           },
-          "pronous": {
+          "pronouns": {
             "type": "string",
             "description": "Applicant's preferred pronouns",
             "example": "he/him"
