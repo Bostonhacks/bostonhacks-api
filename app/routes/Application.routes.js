@@ -34,7 +34,7 @@ const router = express.Router();
  *                              type: string
  *                          gender:
  *                              type: string
- *                          pronous:
+ *                          pronouns:
  *                              type: string
  *                          age:
  *                              type: integer
@@ -113,7 +113,7 @@ router.post("/", verifyToken, upload.single('resume'), createApplication);
  *                      properties:
  *                          gender:
  *                              type: string
- *                          pronous:
+ *                          pronouns:
  *                              type: string
  *                          age:
  *                              type: integer

@@ -114,7 +114,7 @@ router.get("/:id", getApplicationById);
  *                              type: string
  *                          gender:
  *                              type: string
- *                          pronous:
+ *                          pronouns:
  *                              type: string
  *                          age:
  *                              type: integer
@@ -196,7 +196,7 @@ router.post("/", createApplication);
  *                              type: string
  *                          gender:
  *                              type: string
- *                          pronous:
+ *                          pronouns:
  *                              type: string
  *                          age:
  *                              type: integer
