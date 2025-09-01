@@ -23,6 +23,12 @@ export const transformApplicationData = (formData) => {
     }
   }
 
+  if (transformed.authorizeMLHEmail !== undefined) {
+    if (typeof transformed.authorizeMLHEmail === 'string') {
+      transformed.authorizeMLHEmail = transformed.authorizeMLHEmail.toLowerCase() === 'true' || transformed.authorizeMLHEmail === '1';
+    }
+  }
+
   // Remove empty strings and convert to null/undefined where appropriate
   Object.keys(transformed).forEach(key => {
     if (transformed[key] === '') {

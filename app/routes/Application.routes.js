@@ -76,6 +76,8 @@ const router = express.Router();
  *                              type: string
  *                              format: binary
  *                              description: Resume file (PDF, DOC, DOCX, max 10MB)
+ *                          authorizeMLHEmail:
+ *                              type: boolean
  *      responses:
  *          201:
  *              description: Application successfully created

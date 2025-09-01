@@ -63,6 +63,7 @@ const applicationSchema = z.object({
   userId: z.string().uuid("Must be a valid user ID").readonly(),
   status: StatusSchema.default(ApplicationStatus.PENDING).readonly(),
   resumeUrl: z.string("Resume URL must be valid").readonly(),
+  authorizeMLHEmail: z.boolean().default(false),
 });
 
 // Score schema

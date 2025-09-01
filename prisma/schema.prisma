@@ -23,31 +23,32 @@ model User {
 }
 
 model Application {
-  id              String  @id @default(uuid())
-  gender          String
-  pronouns        String
-  age             Int
-  ethnicity       String
-  gradYear        Int
-  phoneNumber     String
-  school          String
-  city            String
-  state           String
-  country         String
-  educationLevel  String
-  major           String
-  diet            String
-  shirtSize       String
-  sleep           Boolean
-  github          String
-  linkedin        String
-  portfolio       String
-  whyBostonhacks  String
-  resumeUrl       String // defaults to showing just file name since get resume url is used to get the one time url
-  applicationYear Int
-  user            User    @relation(fields: [userId], references: [id])
-  userId          String
-  status          Status  @default(PENDING)
+  id                String  @id @default(uuid())
+  gender            String
+  pronouns          String
+  age               Int
+  ethnicity         String
+  gradYear          Int
+  phoneNumber       String
+  school            String
+  city              String
+  state             String
+  country           String
+  educationLevel    String
+  major             String
+  diet              String
+  shirtSize         String
+  sleep             Boolean
+  github            String
+  linkedin          String
+  portfolio         String
+  whyBostonhacks    String
+  resumeUrl         String // defaults to showing just file name since get resume url is used to get the one time url
+  applicationYear   Int
+  user              User    @relation(fields: [userId], references: [id])
+  userId            String
+  status            Status  @default(PENDING)
+  authorizeMLHEmail Boolean @default(false)
 
   @@index([userId])
   @@index([applicationYear])
