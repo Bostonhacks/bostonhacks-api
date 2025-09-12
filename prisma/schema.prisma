@@ -139,6 +139,8 @@ enum Status {
   ACCEPTED
   WAITLISTED
   REJECTED
+  CONFIRMED
+  DECLINED
 }
 
 enum AuthProvider {

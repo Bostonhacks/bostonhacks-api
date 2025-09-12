@@ -5,6 +5,7 @@ import {
   updateApplication,
   getResumeUrl,
   deleteResume,
+  confirmOrDenyApplication
 } from "../controllers/Application.controller.js";
 import express from "express";
 import { verifyToken } from "../middleware/verifyToken.js";
@@ -352,5 +353,51 @@ router.get("/:id/resume/url", verifyToken, getResumeUrl);
  *              $ref: "#/components/responses/500internalservererror"
  */
 router.delete("/:id/resume", verifyToken, deleteResume);
+
+
+/**
+ * @openapi
+ * 
+ * /application/{id}/confirmdeny:
+ *  put:
+ *      summary: Confirm or deny an application
+ *      description: Update the status of an application to either "CONFIRMED" or "DECLINED" only if the current status is "ACCEPTED". This is the only way a user can change their application status.
+ *      tags: [Application]
+ *      parameters:
+ *          - $ref: "#/components/parameters/access_token"
+ *          - in: path
+ *            name: id
+ *            description: Application id
+ *            required: true
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          status:
+ *                              type: string
+ *                              enum: [CONFIRMED, DECLINED]
+ *                              description: New status for the application
+ *      responses:
+ *          200:
+ *              description: Application successfully updated
+ *              content: 
+ *                  application/json:
+ *                      schema:
+ *                          $ref: "#/components/schemas/Application"
+ *          400:
+ *              description: Invalid input or application status not "ACCEPTED"
+ *          401:
+ *              $ref: "#/components/responses/401unauthorized"
+ *          403:
+ *              $ref: "#/components/responses/403forbidden"
+ *          404:
+ *              description: Application not found
+ *          500:
+ *              $ref: "#/components/responses/500internalservererror"
+ */
+router.put("/:id/confirmdeny", verifyToken, confirmOrDenyApplication);
 
 export default router;

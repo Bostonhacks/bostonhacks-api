@@ -61,7 +61,7 @@ const applicationSchema = z.object({
   whyBostonhacks: z.string().min(10, "Please provide a more detailed response"),
   applicationYear: z.number().int().min(2023).max(new Date().getFullYear() + 1),
   userId: z.string().uuid("Must be a valid user ID").readonly(),
-  status: StatusSchema.default(ApplicationStatus.PENDING).readonly(),
+  status: StatusSchema.default(ApplicationStatus.PENDING),
   resumeUrl: z.string("Resume URL must be valid").readonly(),
   authorizeMLHEmail: z.boolean().default(false),
 });
@@ -196,7 +196,6 @@ const applicationUpdateSchema = applicationSchema.omit({
   userId: true,
   applicationYear: true,
   id: true,
-  status: true
 }).partial().strict();
 const projectUpdateSchema = projectSchema.omit({
   id: true,
