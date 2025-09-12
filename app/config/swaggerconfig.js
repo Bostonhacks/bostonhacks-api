@@ -225,7 +225,7 @@ const swaggerDefinition = {
           },
           "status": {
             "type": "string",
-            "enum": ["PENDING", "ACCEPTED", "WAITLISTED", "REJECTED"],
+            "enum": ["PENDING", "ACCEPTED", "WAITLISTED", "REJECTED", "CONFIRMED", "DECLINED"],
             "default": "PENDING",
             "description": "Current status of the application",
             "example": "PENDING"

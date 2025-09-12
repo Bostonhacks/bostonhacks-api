@@ -2,6 +2,7 @@ import prismaInstance from "../database/Prisma.js";
 import logger from "../utils/logger.js";
 import { uploadFileToAzure, deleteFileFromAzure, generateTemporaryUrl } from "../utils/azureStorage.js";
 import { transformApplicationData } from "../utils/formDataTransform.js";
+import ApplicationStatus from "../constants/ApplicationStatus.js";
 
 const prisma = prismaInstance;
 
@@ -218,6 +219,13 @@ export const updateApplication = async (req, res) => {
     if (!req.params.id) {
       return res.status(400).json({
         message: "id parameter is required"
+      });
+    }
+
+    // have to check for status field since status can be updated only on certain conditions 
+    if (req.body.status) {
+      return res.status(400).json({
+        message: "Status field cannot be updated via this endpoint"
       });
     }
 
@@ -554,3 +562,71 @@ export const getResumeUrl = async (req, res) => {
     });
   }
 };
+
+export const confirmOrDenyApplication = async (req, res) => {
+  try {
+    if (!req.params.id) {
+      return res.status(400).json({
+        message: "Application id parameter is required"
+      });
+    }
+
+    const { status } = req.body;
+
+    if (!status || ![ApplicationStatus.CONFIRMED, ApplicationStatus.DECLINED].includes(status)) {
+      return res.status(400).json({
+        message: "Invalid status. Allowed values are 'CONFIRMED' or 'DECLINED'."
+      });
+    }
+
+    const application = await prisma.application.findUnique({
+      where: {
+        id: req.params.id,
+      }
+    });
+
+    if (!application) {
+      return res.status(404).json({
+        message: "Application not found"
+      });
+    }
+
+    // Authorization check - only the user who owns the application can update it
+    if (req.user.id !== application.userId) {
+      logger.warn(`Unauthorized attempt to update application status for id ${req.params.id}`);
+      return res.status(403).json({
+        message: "You are not authorized to update this application."
+      });
+    }
+
+
+    // Verify current status is "ACCEPTED"
+    if (application.status !== ApplicationStatus.ACCEPTED) {
+      return res.status(400).json({
+        message: "Application status must be 'ACCEPTED' to update to 'CONFIRMED' or 'DECLINED'."
+      });
+    }
+
+    const updatedApplication = await prisma.application.update({
+      where: {
+        id: req.params.id,
+      },
+      data: {
+        status: status,
+      }
+    });
+
+    logger.info(`Application status updated to '${status}' for application id ${req.params.id}`);
+    return res.status(200).json({
+      message: `Application status updated to '${status}' successfully.`,
+      application: updatedApplication,
+    });
+  } catch (error) {
+    logger.error('Error in confirmOrDenyApplication:', error);
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: error.message,
+    });
+  }
+
+}
