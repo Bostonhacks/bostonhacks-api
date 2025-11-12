@@ -1,6 +1,6 @@
 # To Run
 
-You must have NodeJS and Docker Desktop installed.
+You must have NodeJS and Docker (or Docker Desktop) installed.
 
 `npm i` to install all packages
 
@@ -8,19 +8,18 @@ There are two ways to run this API
 
 ## Docker Watch
 
-The preferred way to develop since it spins up all components for you in one command.
+The preferred way to develop since it spins up all components for you in one command and follows your code changes automatically.
 
    1. All code must work in the Docker container since our work deploys with Docker containers.
    2. Ensure no other programs are using ports 8000. If you run into issues, try closing containers first.
    3. Create a `.env.development` file as specified in `.env.example`
       - For help with Google Auth, refer to the [Google Cloud App Setup](/docs/googleauth.md#google-cloud-app-setup) section
-   4. If you changed schemas in `prisma/schema.prisma`, run `npm run build:dev` to create a migration. If you don't do this, then your changes will not be reflected in the dev environment.
+   4. If you changed schemas in `prisma/schema.prisma`, follow instructions [here](#changing-schemas) for more info on how to properly change schemas and run migrations.
       - You might need to change your `.env.development` file to use db `@localhost` since the build command uses the same `.env` file as the Docker container.
    5. Run `npm run docker:dev` to start the docker container
       1. `npm run exitdocker:dev` to exit containers
       2. `npm run cleandocker:dev` to exit containers and remove created volumes
-      3. Sometimes you might have to docker-compose down (exitdocker) to start again.
-      4. Refer to [Docker](#docker) section to understand more
+      3. Sometimes you might have to docker compose down (exitdocker) to start again.
    6. Run tests with `npm run docker:test`
       - This uses the `docker-compose.test.yml` file.
 
@@ -91,69 +90,31 @@ Azure Blob Storage is used for file storage and the `.env.example` file should h
 
 # Extra Resources
 
-## Prisma Migrations
+## Changing schemas
 
-You must migrate Prisma schemas before working and after every time you update `/prisma/schema.prisma`. This command should also be run if you change the Prisma schema. If there is a warning about data loss, revert and attempt to change schema to not prompt the issue (i.e. add default value for new field or make it optional)
+1. Change the `priisma/schema.prisma` file to reflect your changes
+   - New fields to existing models need either a default value or nullable. Once a default value is populated for every existing entry, you can remove the default value.
+2. Go to [prisma.md](./prisma.md) and follow the instructions to create a migration and update your local database
+3. Update `app/database/Prisma.js` by adding your fields to the zod validations
+   - There is a main schema for each model and then a "user" and "admin" role that will remove/add in fields based on the role
+   - Add to the Prisma extensions on the bottom similar to this existing snippet:
+4. Add your schema changes to `app/config/swaggerconfig.js` to update the documentation.
 
-`npm run build:dev`
+```javascript
+      async create({ args, query }) {
+        // upon a creation, check the userRole (which needs to be passed in as userRole when performing a query)
+        const role = args.userRole || Role.USER;
 
-This runs `prisma migrate dev` and `prisma generate` to update your local database with any updated schemas and generates the client for your local environment.
+        delete args.userRole;
 
-If you are having issues, then try generating the prisma client if you are getting issues with an ungenerated client. This should be automatically run during the npm install phase, otherwise:
+        if (role === Role.ADMIN) {
+          args.data = adminUserCreateSchema.parse(args.data);
+        } else {
+          // Validate the data against the schema
+          args.data = userCreateSchema.parse(args.data);
+        }
 
-`npx prisma generate`
+        return query(args);
 
-### How Prisma works (if you want to know)
-
-Prisma is an ORM for many different databases, one of which is PostgreSQL. We define our schemas in `/prisma/schema.prisma` and then create a migration and a Prisma client with the defined schemas.
-
-You can refer to [here](https://www.prisma.io/docs/orm/prisma-migrate/workflows/development-and-production) for more info on migrations.
-
-- Essentially must have a migration history using `prisma migrate dev` and in production environments deploy migrations with `prisma migrate deploy`
-
-## Docker
-
-Can look [here](https://docs.docker.com/guides/nodejs/develop/) for help
-
-### Building and running your application with Docker
-
-Run the application using:
-
-<del>`docker-compose -f docker-compose.yml -f docker-compose.{dev/prod/staging}.yml up --build`<del>
-
-`npm run docker:dev`
-
-If you don't need to override the standard compose file, start your application by running:
-
-`docker-compose up --build`.
-
-Your application will be available at <http://localhost:8000>
-
-To stop the application:
-
-`npm run exitdocker:dev`
-
-To remove containers:
-
-`npm run cleandocker:dev`
-
-<del>
-### Deploying your application to the cloud
-
-First, build your image, e.g.: `docker build -t myapp .`.
-If your cloud uses a different CPU architecture than your development
-machine (e.g., you are on a Mac M1 and your cloud provider is amd64),
-you'll want to build the image for that platform, e.g.:
-`docker build --platform=linux/amd64 -t myapp .`.
-
-Then, push it to your registry, e.g. `docker push myregistry.com/myapp`.
-
-Consult Docker's [getting started](https://docs.docker.com/go/get-started-sharing/)
-docs for more detail on building and pushing.
-
-### References
-
-- [Docker's Node.js guide](https://docs.docker.com/language/nodejs/)
--
-
-</del>
+      },
+```
