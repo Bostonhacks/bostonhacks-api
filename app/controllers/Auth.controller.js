@@ -148,7 +148,8 @@ export const googleAuth = async (req, res) => {
     res.cookie("oauthstate", oauthstate, {
       domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production' && process.env.LOCAL_DEV !== "true",
+      secure: true,
+      //secure: process.env.NODE_ENV === 'production' && process.env.LOCAL_DEV !== "true",
       sameSite: "none", // needed for redirect
       maxAge: 5 * 60 * 1000 // 5 minutes
     });
