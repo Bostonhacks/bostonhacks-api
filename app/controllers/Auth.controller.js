@@ -222,8 +222,9 @@ export const googleCallback = async (req, res) => {
         res.clearCookie("oauthstate", {
           domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: "lax", // needed for redirect
+          secure: true,
+          //secure: process.env.NODE_ENV === 'production',
+          sameSite: "none", // needed for redirect
           // maxAge: 5 * 60 * 1000 // 5 minutes
         });
       } catch (err) {
@@ -300,8 +301,9 @@ export const googleCallback = async (req, res) => {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
-      secure: process.env.NODE_ENV === 'production' && process.env.LOCAL_DEV !== "true",
-      sameSite: 'strict',
+      secure: true,
+      //secure: process.env.NODE_ENV === 'production' && process.env.LOCAL_DEV !== "true",
+      sameSite: 'none',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     })
 
@@ -341,8 +343,9 @@ export const logout = async (req, res) => {
       // settings must be the same as the set cookie on login
       httpOnly: true,
       domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      //secure: process.env.NODE_ENV === 'production',
+      secure: true,
+      sameSite: 'none',
       // maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }).status(200).json({
       message: "User logged out successfully",
@@ -429,8 +432,9 @@ export const emailLogin = async (req, res) => {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,
+      //secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }).status(200).json({
       message: "User logged in successfully",
@@ -523,8 +527,9 @@ export const createEmailUser = async (req, res) => {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,
+      //secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }).status(201).json({
       message: "User created successfully",
