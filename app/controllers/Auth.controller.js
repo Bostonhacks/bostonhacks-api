@@ -149,7 +149,7 @@ export const googleAuth = async (req, res) => {
       domain: process.env.NODE_ENV === "production" ? process.env.ROOT_DOMAIN : undefined,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production' && process.env.LOCAL_DEV !== "true",
-      sameSite: "lax", // needed for redirect
+      sameSite: "none", // needed for redirect
       maxAge: 5 * 60 * 1000 // 5 minutes
     });
 
